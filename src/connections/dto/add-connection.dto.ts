@@ -4,7 +4,7 @@ import { ConnectionType } from "../entities/connection.entity"
 export class AddConnectionDto {
     @IsString()
     name: string
-
+    
     @IsEnum(ConnectionType)
     type: ConnectionType
 

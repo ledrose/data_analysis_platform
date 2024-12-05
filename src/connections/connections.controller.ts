@@ -13,11 +13,13 @@ export class ConnectionsController {
     async connect(@Body() addConnectionDto: AddConnectionDto) {
         try {
             const knexInstance = await this.connectionsService.getConnection(addConnectionDto);
-            // const inspector = SchemaInspector(knexInstance);
+            const inspector = SchemaInspector(knexInstance);
+            const tables = await inspector.tables();
             return {
                 status: 'success',
                 message: {
-                    database: knexInstance.client.config.database
+                    database: knexInstance.client.config.database,
+                    tables: tables
                 } 
             }
         } catch (error) {
@@ -27,7 +29,5 @@ export class ConnectionsController {
             }
         }
     }
-
-    async 
 
 }

@@ -1,5 +1,5 @@
 import { Dataset } from "../../datasets/entities/dataset.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Generated, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 export enum ConnectionType {
     POSTGRESQL = "pg",

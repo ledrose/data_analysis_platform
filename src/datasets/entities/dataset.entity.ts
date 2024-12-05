@@ -7,6 +7,9 @@ export class Dataset {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column()
+    name: string;
+
     @JoinTable()
     @OneToMany(() => Connection, (connection) => connection.datasets)
     connection: Connection;
