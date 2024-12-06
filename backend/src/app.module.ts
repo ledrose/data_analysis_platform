@@ -8,6 +8,8 @@ import { GraphsModule } from './graphs/graphs.module';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import * as Joi from '@hapi/joi';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -28,6 +30,9 @@ import * as Joi from '@hapi/joi';
     database: process.env.DATABASE_NAME,
     autoLoadEntities: true,
     synchronize: true
+  }),
+  ServeStaticModule.forRoot({
+    rootPath: join(__dirname, '..', '..','frontend', 'out'),
   }),UsersModule, ConnectionsModule, DatasetsModule, GraphsModule],
   controllers: [AppController],
   providers: [AppService],
