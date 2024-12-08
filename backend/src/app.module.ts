@@ -31,10 +31,10 @@ import { join } from 'path';
     autoLoadEntities: true,
     synchronize: true
   }),
-  ServeStaticModule.forRoot({
-    rootPath: join(__dirname, '..', '..','frontend', 'out'),
-    renderPath: "/*"
-  }),
+  // ServeStaticModule.forRoot({
+  //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
+  //   renderPath: "/*"
+  // }),
   UsersModule, ConnectionsModule, DatasetsModule, GraphsModule],
   controllers: [AppController],
   providers: [AppService],

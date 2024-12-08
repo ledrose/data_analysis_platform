@@ -1,5 +1,5 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { AddConnectionDto } from './dto/add-connection.dto';
+import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { ConnectionDto } from './dto/connection.dto';
 import {Knex, knex} from 'knex';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection } from './entities/connection.entity';
@@ -24,50 +24,65 @@ export class ConnectionsService implements OnModuleDestroy{
 
     //Exception in case of failed connection to database
     ///TODO unite Ids in database and hash table
-    async getConnection(config: AddConnectionDto): Promise<Knex> {
-        const dbId = this.generateId(config);
+    async getConnection(dbId: string): Promise<Knex> {
         if (this.connections.has(dbId)) {
             const connectionInfo = this.connections.get(dbId);
             connectionInfo.lastUsed = Date.now();
             this.resetConnectionTimer(dbId);
-            try {
-                await this.testConnection(connectionInfo.knex);
-            } catch (error) {
-                console.log("Connection to database failed, closing connection: ", error);
-                await this.closeConnection(dbId);
-                return await this.getConnection(config);
-            }
+            await this.testConnection(connectionInfo.knex); //Can throw exception
             console.log("Reusing connection: ", dbId);
             return connectionInfo.knex;
         }
-        const knexInstance = this.createConnection(config);
+        const connectionFromDb = await this.connectionRepository.findOne({where: {id: dbId}});
+        if (!connectionFromDb) {
+            throw new NotFoundException("Id of this connection not found");
+        }
+        const knexInstance = this.createConnection(connectionFromDb);
         await this.testConnection(knexInstance);
-        const configFromDb = await this.getConnectionFromDb(config);
         this.connections.set(dbId, {
             knex: knexInstance,
             lastUsed: Date.now(),
-            config: configFromDb,
+            config: connectionFromDb,
             timer: this.createConnectionTimer(dbId)
         })
         return knexInstance;
     }
 
+    async getOrCreateConnectionId(config: ConnectionDto): Promise<string> {
+        return (await this.getConnectionFromDbByConfig(config)).id;
+    }
+
     private async testConnection(knexInstance: Knex) {
-        return await knexInstance.raw('select 1+1 as result');
+        try {
+            await knexInstance.raw('select 1+1 as result');
+        } catch (error) {
+            console.log(error);
+            throw new BadRequestException("Database is unavaliable");
+        }
     }
 
 
-    private async getConnectionFromDb(config: AddConnectionDto): Promise<Connection> {
-        const dbConnection = await this.connectionRepository.findOne({where: {name: config.name}});
+    private async getConnectionFromDbByConfig(config: ConnectionDto): Promise<Connection> {
+        const dbConnection = await this.connectionRepository.findOne({where: {
+            name: config.name,
+            password: config.password,
+            username: config.username,
+            database: config.database,
+            host: config.host,
+            port: config.port,
+            type: config.type
+        }});
         if (dbConnection) {
             return dbConnection;
         }
+        await this.testConnection(this.createConnection(config));
         const insertedConnection = await this.connectionRepository.create({...config});
         console.log("Created connection in db")
         return await this.connectionRepository.save(insertedConnection);
     }
 
-    private createConnection(connection: AddConnectionDto): Knex {
+    //TODO Make argument interface
+    private createConnection(connection: ConnectionDto): Knex {
         return knex({
             client: connection.type.toString(),
             connection: {
@@ -106,24 +121,6 @@ export class ConnectionsService implements OnModuleDestroy{
             clearTimeout(connectionInfo.timer);
             this.connections.delete(dbId);
         }
-    }
-
-    private generateId(config: AddConnectionDto): string {
-        return this.hashString(JSON.stringify(config));
-    }
-
-    private hashString(string: string): string {
-        let hash = 0;
-        let char;
-        if (string.length == 0) return hash.toString();
-    
-        for (let i = 0; i < string.length; i++) {
-            char = string.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-    
-        return hash.toString();
     }
 
     async onModuleDestroy() {

@@ -1,7 +1,7 @@
 import { IsDecimal, IsEnum, IsInt, IsNumber, IsString } from "class-validator"
 import { ConnectionType } from "../entities/connection.entity"
 
-export class AddConnectionDto {
+export class ConnectionDto {
     @IsString()
     name: string
     

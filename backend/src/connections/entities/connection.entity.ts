@@ -8,8 +8,8 @@ export enum ConnectionType {
 
 @Entity()
 export class Connection {
-    @PrimaryGeneratedColumn()
-    id: number
+    @PrimaryGeneratedColumn("uuid")
+    id: string
 
     @Column()
     name: string
