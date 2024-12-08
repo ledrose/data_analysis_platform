@@ -10,16 +10,22 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
 import * as Joi from '@hapi/joi';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    validationSchema: Joi.object({
-      DATABASE_HOST: Joi.required(),
-      DATABASE_PORT: Joi.number().default(5432),
-      DATABASE_NAME: Joi.required(),
-      DATABASE_USERNAME: Joi.required(),
-      DATABASE_PASSWORD: Joi.required()
-    })
+  imports: [
+    ConfigModule.forRoot({
+      validationSchema: Joi.object({
+        DATABASE_HOST: Joi.required(),
+        DATABASE_PORT: Joi.number().default(5432),
+        DATABASE_NAME: Joi.required(),
+        DATABASE_USERNAME: Joi.required(),
+        DATABASE_PASSWORD: Joi.required(),
+        JWT_SECRET: Joi.required(),
+        JWT_EXPIRATION: Joi.required()
+      }),
+      envFilePath: '.env',
+      isGlobal: true
   }),
     TypeOrmModule.forRoot({
     type: "postgres",
@@ -35,7 +41,7 @@ import { join } from 'path';
   //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
   //   renderPath: "/*"
   // }),
-  UsersModule, ConnectionsModule, DatasetsModule, GraphsModule],
+  UsersModule, ConnectionsModule, DatasetsModule, GraphsModule, AuthModule, UsersModule],
   controllers: [AppController],
   providers: [AppService],
 })
