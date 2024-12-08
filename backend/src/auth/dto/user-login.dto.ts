@@ -4,5 +4,5 @@ export class UserLoginDto {
     @IsString()
     username: string;
     @IsString()
-    passwordHash: string;
+    password: string;
 }

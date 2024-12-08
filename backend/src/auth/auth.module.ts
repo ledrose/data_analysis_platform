@@ -2,15 +2,16 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { UsersService } from 'src/users/users.service';
-import { UsersModule } from 'src/users/users.module';
+import { User } from 'src/auth/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersService } from './user.service';
+import { AuthMiddleware } from './auth.middleware';
 
 @Module({
   controllers: [AuthController],
-  imports: [UsersModule,
+  imports: [
+    TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -19,8 +20,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       global: true,
       inject: [ConfigService]
-    })
+    }),
   ],
-  providers: [AuthService]
+  exports: [AuthMiddleware],
+  providers: [AuthService,UsersService,AuthMiddleware]
 })
 export class AuthModule {}

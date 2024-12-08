@@ -1,7 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { DatasetsModule } from './datasets/datasets.module';
 import { GraphsModule } from './graphs/graphs.module';
@@ -11,6 +10,7 @@ import * as Joi from '@hapi/joi';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
+import { AuthMiddleware } from './auth/auth.middleware';
 
 @Module({
   imports: [
@@ -41,8 +41,14 @@ import { AuthModule } from './auth/auth.module';
   //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
   //   renderPath: "/*"
   // }),
-  UsersModule, ConnectionsModule, DatasetsModule, GraphsModule, AuthModule, UsersModule],
+  ConnectionsModule, DatasetsModule, GraphsModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes('*');
+  }
+}
