@@ -33,7 +33,9 @@ import { join } from 'path';
   }),
   ServeStaticModule.forRoot({
     rootPath: join(__dirname, '..', '..','frontend', 'out'),
-  }),UsersModule, ConnectionsModule, DatasetsModule, GraphsModule],
+    renderPath: "/*"
+  }),
+  UsersModule, ConnectionsModule, DatasetsModule, GraphsModule],
   controllers: [AppController],
   providers: [AppService],
 })
