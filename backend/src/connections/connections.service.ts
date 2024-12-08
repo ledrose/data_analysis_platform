@@ -29,7 +29,12 @@ export class ConnectionsService implements OnModuleDestroy{
             const connectionInfo = this.connections.get(dbId);
             connectionInfo.lastUsed = Date.now();
             this.resetConnectionTimer(dbId);
-            await this.testConnection(connectionInfo.knex); //Can throw exception
+            try {
+                await this.testConnection(connectionInfo.knex); //Can throw exception
+            } catch (error) {
+                await this.closeConnection(dbId);
+                throw error;
+            }
             console.log("Reusing connection: ", dbId);
             return connectionInfo.knex;
         }
@@ -75,7 +80,13 @@ export class ConnectionsService implements OnModuleDestroy{
         if (dbConnection) {
             return dbConnection;
         }
-        await this.testConnection(this.createConnection(config));
+        const knexInstance = this.createConnection(config);
+        try {
+            await this.testConnection(knexInstance);
+        } catch (error) {
+            knexInstance.destroy();
+            throw error
+        }
         const insertedConnection = await this.connectionRepository.create({...config});
         console.log("Created connection in db")
         return await this.connectionRepository.save(insertedConnection);

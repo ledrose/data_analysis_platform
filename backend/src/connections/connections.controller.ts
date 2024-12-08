@@ -4,20 +4,23 @@ import { ConnectionDto } from './dto/connection.dto';
 import {knex} from "knex";
 import SchemaInspector from 'knex-schema-inspector';
 import { table } from 'console';
+import { ConnectionMetadataService } from './connections.metadata.service';
 
 @Controller('connections')
 export class ConnectionsController {
-    constructor(private readonly connectionsService: ConnectionsService) {}
+    constructor(
+        private readonly connectionsService: ConnectionsService,
+        private readonly connectionMetadataService: ConnectionMetadataService
+    ) {}
 
     @Get(":id")
+    @HttpCode(HttpStatus.OK)
     async get_by_id(@Param('id') id: string) {
         const knexInstance = await this.connectionsService.getConnection(id);
-        const inspector = SchemaInspector(knexInstance);
-        const columns = await inspector.columns();
-        const tables = await inspector.tables();
-        const foreignKeys = await inspector.foreignKeys();
+        const columns = await this.connectionMetadataService.getAllColumns(knexInstance);
+        const joins = await this.connectionMetadataService.getAllJoins(knexInstance);
         return {
-            tables, columns, foreignKeys
+            columns, joins
         }
     }
 
@@ -26,20 +29,6 @@ export class ConnectionsController {
     @HttpCode(HttpStatus.OK)
     async createConnection(@Body() connectionDto: ConnectionDto) {
         return await this.connectionsService.getOrCreateConnectionId(connectionDto);
-        // try {
-        //     const knexInstance = await this.connectionsService.getConnectionByConfig(connectionDto);
-        //     const inspector = SchemaInspector(knexInstance);
-        //     const tables = await inspector.tables();
-        //     return {
-        //             database: knexInstance.client.config.database,
-        //             tables: tables
-        //         } 
-        //     } catch (error) {
-        //     return {
-        //         status: 'error',
-        //         message: error
-        //     }
-        // }
     }
 
 }
