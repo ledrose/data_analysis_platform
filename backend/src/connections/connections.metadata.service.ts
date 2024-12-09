@@ -9,7 +9,11 @@ import { table } from "console";
 
 @Injectable()
 export class ConnectionMetadataService {
-    
+    constructor(
+
+    ) {}
+
+
     async getAllColumns(knexInstance: Knex) : Promise<TableInfoDto[]>  {
         const inspector = CreateSchemaInspector(knexInstance);
         const tables = await inspector.tables();
@@ -51,7 +55,7 @@ export class ConnectionMetadataService {
         }));
     }  
     
-    //TODO finish type mapping
+    //TODO finish type mapping, maaybe yaml config
     private mapType(type: string): string {
         return type;
     }

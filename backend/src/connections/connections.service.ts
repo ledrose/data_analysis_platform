@@ -51,10 +51,6 @@ export class ConnectionsService implements OnModuleDestroy{
             .where("connection.id = :id", {id: dbId})
             .where("user.username = :username", {username})
             .getOne(); 
-        // const connectionFromDb = await this.connectionRepository.findOne({
-        //     where:  {id: dbId, user: {username: username}},
-        //     relations: { user: true}
-        // });
         console.log(connectionFromDb);
         if (!connectionFromDb) {
             throw new NotFoundException("Id of this connection not found");

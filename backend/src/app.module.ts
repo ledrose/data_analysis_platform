@@ -25,7 +25,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
         JWT_EXPIRATION: Joi.required()
       }),
       envFilePath: '.env',
-      isGlobal: true
+      isGlobal: true,
   }),
     TypeOrmModule.forRoot({
     type: "postgres",
