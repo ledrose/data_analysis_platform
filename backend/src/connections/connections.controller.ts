@@ -17,8 +17,8 @@ export class ConnectionsController {
 
     @Get(":id")
     @HttpCode(HttpStatus.OK)
-    async get_by_id(@Param('id') id: string) {
-        const knexInstance = await this.connectionsService.getConnection(id);
+    async get_by_id(@Param('id') id: string, @Auth() user: string) {
+        const knexInstance = await this.connectionsService.getConnection(id, user);
         const columns = await this.connectionMetadataService.getAllColumns(knexInstance);
         const joins = await this.connectionMetadataService.getAllJoins(knexInstance);
         return {
@@ -32,7 +32,7 @@ export class ConnectionsController {
     @HttpCode(HttpStatus.OK)
     async createConnection(@Body() connectionDto: ConnectionDto, @Auth() user: string) {
         console.log(`Creating connection for user ${user}`)
-        return await this.connectionsService.getOrCreateConnectionId(connectionDto);
+        return await this.connectionsService.getOrCreateConnectionId(connectionDto,user);
     }
 
 }

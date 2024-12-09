@@ -1,5 +1,6 @@
+import { User } from "src/auth/entities/user.entity";
 import { Dataset } from "../../datasets/entities/dataset.entity";
-import { Column, Entity, Generated, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 export enum ConnectionType {
     POSTGRESQL = "pg",
@@ -34,6 +35,10 @@ export class Connection {
 
     @Column()
     database: string
+
+    @JoinColumn()
+    @ManyToOne(() => User, (user) => user.connections)
+    user: User
 
     @ManyToOne(() => Dataset, (dataset) => dataset.connection)
     datasets?: Dataset[]

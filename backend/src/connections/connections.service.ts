@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { ConnectionDto } from './dto/connection.dto';
 import {Knex, knex} from 'knex';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Connection } from './entities/connection.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
 
 interface ConnectionInfo {
     knex: Knex,
@@ -16,7 +17,11 @@ interface ConnectionInfo {
 export class ConnectionsService implements OnModuleDestroy{
     constructor(
         @InjectRepository(Connection)
-        private readonly connectionRepository: Repository<Connection>
+        private readonly connectionRepository: Repository<Connection>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        @InjectDataSource()
+        private readonly dataSource: DataSource
     ) {}
     private connections: Map<string,ConnectionInfo> = new Map();
     private readonly CONNECTION_TIMEOUT = 10*60*1000;
@@ -24,8 +29,10 @@ export class ConnectionsService implements OnModuleDestroy{
 
     //Exception in case of failed connection to database
     ///TODO unite Ids in database and hash table
-    async getConnection(dbId: string): Promise<Knex> {
-        if (this.connections.has(dbId)) {
+    async getConnection(dbId: string, username: string): Promise<Knex> {
+        if (this.connections.has(dbId)
+            && this.connections.get(dbId)?.config?.username === username
+        ) {
             const connectionInfo = this.connections.get(dbId);
             connectionInfo.lastUsed = Date.now();
             this.resetConnectionTimer(dbId);
@@ -38,7 +45,17 @@ export class ConnectionsService implements OnModuleDestroy{
             console.log("Reusing connection: ", dbId);
             return connectionInfo.knex;
         }
-        const connectionFromDb = await this.connectionRepository.findOne({where: {id: dbId}});
+        const connectionFromDb = await this.connectionRepository
+            .createQueryBuilder("connection")
+            .innerJoin("connection.user", "user")
+            .where("connection.id = :id", {id: dbId})
+            .where("user.username = :username", {username})
+            .getOne(); 
+        // const connectionFromDb = await this.connectionRepository.findOne({
+        //     where:  {id: dbId, user: {username: username}},
+        //     relations: { user: true}
+        // });
+        console.log(connectionFromDb);
         if (!connectionFromDb) {
             throw new NotFoundException("Id of this connection not found");
         }
@@ -53,8 +70,8 @@ export class ConnectionsService implements OnModuleDestroy{
         return knexInstance;
     }
 
-    async getOrCreateConnectionId(config: ConnectionDto): Promise<string> {
-        return (await this.getConnectionFromDbByConfig(config)).id;
+    async getOrCreateConnectionId(config: ConnectionDto, username: string): Promise<string> {
+        return (await this.getConnectionFromDbByConfig(config,username)).id;
     }
 
     private async testConnection(knexInstance: Knex) {
@@ -67,7 +84,7 @@ export class ConnectionsService implements OnModuleDestroy{
     }
 
 
-    private async getConnectionFromDbByConfig(config: ConnectionDto): Promise<Connection> {
+    private async getConnectionFromDbByConfig(config: ConnectionDto, username: string): Promise<Connection> {
         const dbConnection = await this.connectionRepository.findOne({where: {
             name: config.name,
             password: config.password,
@@ -87,7 +104,11 @@ export class ConnectionsService implements OnModuleDestroy{
             knexInstance.destroy();
             throw error
         }
-        const insertedConnection = await this.connectionRepository.create({...config});
+        const user = await this.userRepository.findOne({where: {username}});
+        if (!user) {
+            throw new UnauthorizedException("Username not found");
+        }
+        const insertedConnection = await this.connectionRepository.create({...config,user});
         console.log("Created connection in db")
         return await this.connectionRepository.save(insertedConnection);
     }
