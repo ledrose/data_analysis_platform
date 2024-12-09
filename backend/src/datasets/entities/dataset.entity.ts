@@ -1,11 +1,12 @@
 import { Connection } from "../../connections/entities/connection.entity";
-import { Column, Entity, JoinTable, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Join, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { DatasetField } from "./dataset-field.entity";
+import { DatasetJoin } from "./dataset-join.entity";
 
 @Entity()
 export class Dataset {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn("uuid")
+    id: string;
 
     @Column()
     name: string;
@@ -16,7 +17,10 @@ export class Dataset {
 
     @Column()
     primary_table: string;
-
+    
     @OneToMany(() => DatasetField, (field) => field.dataset)
-    fields?: DatasetField[];
+    fields: DatasetField[];
+
+    @ManyToOne(() => DatasetJoin, (join) => join.dataset)
+    joins: DatasetJoin[]
 }

@@ -11,7 +11,8 @@ import { User } from 'src/auth/entities/user.entity';
 @Module({
   controllers: [ConnectionsController],
   imports: [TypeOrmModule.forFeature([Connection,User])],
-  providers: [ConnectionsService, ConnectionMetadataService]
+  providers: [ConnectionsService, ConnectionMetadataService],
+  exports: [ConnectionsService]
 })
 
 export class ConnectionsModule {}

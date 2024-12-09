@@ -11,6 +11,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './auth/auth.middleware';
+import { QueryModule } from './query/query.module';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
   //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
   //   renderPath: "/*"
   // }),
-  ConnectionsModule, DatasetsModule, GraphsModule, AuthModule],
+  ConnectionsModule, DatasetsModule, GraphsModule, AuthModule, QueryModule],
   controllers: [AppController],
   providers: [AppService],
 })

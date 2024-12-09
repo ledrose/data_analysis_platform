@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Dataset } from './entities/dataset.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,11 +11,28 @@ export class DatasetsService {
         private readonly datasetRepository: Repository<Dataset>
     ) {}
 
-    async get_by_name(name: string) {
-        return this.datasetRepository.findOne({where: {name: name}})
+    async get_dataset(id: string,username: string) {
+        return await this.datasetRepository
+            .createQueryBuilder('dataset')
+            .leftJoin('dataset.connection', 'connection')
+            .leftJoin('connection.user', 'user')
+            .where('user.username = :username', { username })
+            .where('dataset.id = :id', { id })
+            .getOne();
     }
 
-    async create(dataset_dto: AddDatasetDto) {
-        throw new Error('Method not implemented.');
+    async create(dataset_dto: AddDatasetDto,username: string) {
+        const dbDataset = await this.datasetRepository
+            .createQueryBuilder('dataset')
+            .leftJoin('dataset.connection', 'connection')
+            .leftJoin('connection.user', 'user')
+            .where('user.username = :username', { username })
+            .where('dataset.name = :name', { name: dataset_dto.name })
+            .getOne();
+        if (dbDataset) {
+            throw new ConflictException("Dataset with this name already exists");
+        }
+        const connection = await this.datasetRepository.create({...dataset_dto});
+        return this.datasetRepository.save(connection);
     }
 }
