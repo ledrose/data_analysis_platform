@@ -26,6 +26,13 @@ export class ConnectionsController {
         }
     }
 
+    @Get()
+    @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.OK)
+    async get_all_connections(@Auth() user: string) {
+        return this.connectionsService.getConnections(user);
+    }
+
 
     @Post()
     @UseGuards(AuthGuard)

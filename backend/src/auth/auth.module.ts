@@ -22,7 +22,7 @@ import { AuthMiddleware } from './auth.middleware';
       inject: [ConfigService]
     }),
   ],
-  exports: [AuthMiddleware],
+  exports: [AuthMiddleware,UsersService],
   providers: [AuthService,UsersService,AuthMiddleware]
 })
 export class AuthModule {}

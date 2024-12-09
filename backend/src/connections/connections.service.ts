@@ -66,6 +66,14 @@ export class ConnectionsService implements OnModuleDestroy{
         return knexInstance;
     }
 
+    async getConnections(username: string): Promise<Connection[]> {
+        return await this.connectionRepository
+            .createQueryBuilder("connection")
+            .innerJoin("connection.user", "user")
+            .where("user.username = :username", {username})
+            .getMany();
+    }
+
     async getOrCreateConnectionId(config: ConnectionDto, username: string): Promise<string> {
         return (await this.getConnectionFromDbByConfig(config,username)).id;
     }
@@ -79,6 +87,7 @@ export class ConnectionsService implements OnModuleDestroy{
         }
     }
 
+    
 
     private async getConnectionFromDbByConfig(config: ConnectionDto, username: string): Promise<Connection> {
         const dbConnection = await this.connectionRepository.findOne({where: {

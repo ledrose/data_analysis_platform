@@ -14,8 +14,17 @@ export class UsersService {
         return this.userRepository.findOne({where: {username}});
     }
 
-    async create(username: string, passwordHash: string) {
+    async create(username: string, passwordHash: string){
         const user = this.userRepository.create({username, passwordHash});
         return this.userRepository.save(user);
+    }
+
+    async isUserHasDatasetAccess(username: string, dataset_id: string) {
+        return await this.userRepository.createQueryBuilder('user')
+            .leftJoin('user.connections', 'connection')
+            .leftJoin('connection.datasets', 'dataset')
+            .where('user.username = :username', { username })
+            .where('dataset.id = :dataset_id', { dataset_id })
+            .getOne();
     }
 }
