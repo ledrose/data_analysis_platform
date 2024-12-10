@@ -1,6 +1,12 @@
 import { Column, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Dataset } from "./dataset.entity";
 
+export enum DtoType {
+    BASE = "base",
+    CALCULATED = "calculated"
+}
+
+
 export enum ValueType {
     STRING = "string",
     NUMBER = "number",
@@ -28,8 +34,8 @@ export class DatasetField {
     @Column({type: "enum", enum: ValueType})
     type: ValueType;
 
-    @Column()
-    is_calculated: boolean;
+    @Column({type: "enum", enum: DtoType})
+    dto_type: DtoType
 
     @Column()
     formula?: string;
