@@ -26,6 +26,6 @@ export class DatasetJoin {
     dataset: Dataset;
 
     @Column()
-    datasetId: number;
+    datasetId: string;
 }
 

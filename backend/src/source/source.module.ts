@@ -8,6 +8,7 @@ import { SourceField } from './entities/source-field.entity';
 @Module({
   providers: [SourceService],
   imports: [TypeOrmModule.forFeature([SourceTable,SourceField])],
-  controllers: [SourceController]
+  controllers: [SourceController],
+  exports: [SourceService]
 })
 export class SourceModule {}

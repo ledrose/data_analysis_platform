@@ -33,7 +33,7 @@ export class DatasetField {
     dataset: Dataset;
 
     @Column()
-    dataset_id: number
+    dataset_id: string
 
     @Column({type: "enum", enum: ValueType})
     type: ValueType;
