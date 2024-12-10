@@ -1,4 +1,4 @@
-import { Column, Entity, JoinTable, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Dataset } from "./dataset.entity";
 
 @Entity()
@@ -19,3 +19,4 @@ export class DatasetJoin {
     @OneToMany(() => Dataset, (dataset) => dataset.joins)
     dataset: Dataset
 }
+
