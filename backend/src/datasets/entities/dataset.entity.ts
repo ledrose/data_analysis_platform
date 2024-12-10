@@ -1,5 +1,5 @@
 import { Connection } from "../../connections/entities/connection.entity";
-import { Column, Entity, Join, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { DatasetField } from "./dataset-field.entity";
 import { DatasetJoin } from "./dataset-join.entity";
 
@@ -11,13 +11,16 @@ export class Dataset {
     @Column()
     name: string;
 
-    @JoinTable()
+    @Column()
+    description: string;
+
+    @JoinColumn({name: 'connectionId'})
     @OneToMany(() => Connection, (connection) => connection.datasets)
     connection: Connection;
 
     @Column()
-    primary_table: string;
-    
+    connectionId: string
+
     @OneToMany(() => DatasetField, (field) => field.dataset)
     fields: DatasetField[];
 

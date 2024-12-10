@@ -1,22 +1,31 @@
-import { Column, Entity, JoinTable, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Dataset } from "./dataset.entity";
+import { SourceField } from "src/source/entities/source-field.entity";
 
 @Entity()
 export class DatasetJoin {
     @PrimaryGeneratedColumn()
-    id: number
+    id: number;
+
+    @JoinColumn({name: 'leftSourceFieldId'})
+    @OneToMany(() => SourceField, (field) => field.id)
+    leftSourceField: SourceField;
 
     @Column()
-    table_joined: string
+    leftSourceFieldId: number;
+
+    @JoinColumn({name: 'rightSourceFieldId'})
+    @OneToMany(() => SourceField, (field) => field.id)
+    rightSourceField: SourceField;
 
     @Column()
-    field_original: string
+    rightSourceFieldId: number;
 
-    @Column()
-    field_joined: string
-
-    @JoinTable()
+    @JoinColumn({name: 'datasetId'})
     @OneToMany(() => Dataset, (dataset) => dataset.joins)
-    dataset: Dataset
+    dataset: Dataset;
+
+    @Column()
+    datasetId: number;
 }
 

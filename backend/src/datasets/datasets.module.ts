@@ -7,12 +7,11 @@ import { DatasetField } from './entities/dataset-field.entity';
 import { DatasetJoin } from './entities/dataset-join.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Connection } from 'src/connections/entities/connection.entity';
-import { DatasetFieldsController } from './dataset-fields/dataset-fields.controller';
 
 @Module({
-  providers: [DatasetsService,DatasetFieldsController],  
+  providers: [DatasetsService,],  
   imports: [TypeOrmModule.forFeature([Dataset,DatasetField,DatasetJoin,Connection]), AuthModule],
-  controllers: [DatasetsController,DatasetFieldsController],
+  controllers: [DatasetsController,],
   exports: [DatasetsService]
 })
 export class DatasetsModule {}

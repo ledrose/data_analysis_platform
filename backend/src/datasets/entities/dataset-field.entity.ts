@@ -1,5 +1,6 @@
-import { Column, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Dataset } from "./dataset.entity";
+import { SourceField } from "src/source/entities/source-field.entity";
 
 export enum DtoType {
     BASE = "base",
@@ -27,22 +28,22 @@ export class DatasetField {
     @Column()
     name: string;
 
-    @JoinTable()
+    @JoinColumn({name: 'datasetId'})
     @ManyToOne(() => Dataset, (dataset) => dataset.fields)
     dataset: Dataset;
+
+    @Column()
+    dataset_id: number
 
     @Column({type: "enum", enum: ValueType})
     type: ValueType;
 
-    @Column({type: "enum", enum: DtoType})
-    dto_type: DtoType
-
-    @Column()
-    formula?: string;
-
     @Column({type: "enum", enum: AggregateType})
-    aggregate_type?: AggregateType;
+    aggregateType: AggregateType;
+
+    @JoinColumn({name: 'sourceFieldId'})
+    sourceField: SourceField;
 
     @Column()
-    base_field?: string;
+    sourceFieldId: number;
 }

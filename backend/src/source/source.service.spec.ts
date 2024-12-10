@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DatasetFieldsService } from './dataset-fields.service';
+import { SourceService } from './source.service';
 
-describe('DatasetFieldsService', () => {
-  let service: DatasetFieldsService;
+describe('SourceService', () => {
+  let service: SourceService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DatasetFieldsService],
+      providers: [SourceService],
     }).compile();
 
-    service = module.get<DatasetFieldsService>(DatasetFieldsService);
+    service = module.get<SourceService>(SourceService);
   });
 
   it('should be defined', () => {

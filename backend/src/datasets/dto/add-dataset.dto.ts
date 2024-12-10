@@ -1,5 +1,4 @@
 import { IsString } from "class-validator";
-import { DatasetFieldDto } from "./dataset-field.dto";
 
 export class AddDatasetDto {
     @IsString()
