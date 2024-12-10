@@ -5,9 +5,10 @@ export class AddDatasetDto {
     name: string;
     
     @IsString()
-    connection_id: string;
+    description: string;
 
     @IsString()
-    primary_table: string;
+    connection_id: string;
+    
     // fields: DatasetFieldDto[];
 }

@@ -26,12 +26,23 @@ export class DatasetsService {
 
     async create(dataset_dto: AddDatasetDto,username: string) {
         const dbDataset = await this.datasetRepository
-            .createQueryBuilder('dataset')
-            .leftJoin('dataset.connection', 'connection')
-            .leftJoin('connection.user', 'user')
-            .where('user.username = :username', { username })
-            .where('dataset.name = :name', { name: dataset_dto.name })
-            .getOne();
+            .findOne({
+                where: {
+                    name: dataset_dto.name,
+                    connection: {
+                        user: {
+                            username
+                        }
+                    }
+                },
+                join: {
+                    alias: 'dataset',
+                    leftJoin: {
+                        connection: 'dataset.connection',
+                        user: 'connection.user'
+                    }
+                }
+            });
         if (dbDataset) {
             throw new ConflictException("Dataset with this name already exists");
         }
@@ -40,7 +51,7 @@ export class DatasetsService {
         if (!connection) {
             throw new NotFoundException("Connection not found");
         }
-        const dataset = await this.datasetRepository.create({...dataset_dto, connection});
+        const dataset = await this.datasetRepository.create({...dataset_dto, connectionId: dataset_dto.connection_id});
         return this.datasetRepository.save(dataset);
     }
 }

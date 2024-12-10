@@ -34,7 +34,7 @@ export class ConnectionsController {
     }
 
 
-    @Post()
+    @Post('create')
     @UseGuards(AuthGuard)
     @HttpCode(HttpStatus.OK)
     async createConnection(@Body() connectionDto: ConnectionDto, @Auth() user: string) {

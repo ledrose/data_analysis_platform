@@ -15,7 +15,7 @@ export class Dataset {
     description: string;
 
     @JoinColumn({name: 'connectionId'})
-    @OneToMany(() => Connection, (connection) => connection.datasets)
+    @ManyToOne(() => Connection, (connection) => connection.datasets)
     connection: Connection;
 
     @Column()
@@ -24,6 +24,6 @@ export class Dataset {
     @OneToMany(() => DatasetField, (field) => field.dataset)
     fields: DatasetField[];
 
-    @ManyToOne(() => DatasetJoin, (join) => join.dataset)
+    @OneToMany(() => DatasetJoin, (join) => join.dataset)
     joins: DatasetJoin[]
 }

@@ -8,21 +8,21 @@ export class DatasetJoin {
     id: number;
 
     @JoinColumn({name: 'leftSourceFieldId'})
-    @OneToMany(() => SourceField, (field) => field.id)
+    @ManyToOne(() => SourceField, (field) => field.id)
     leftSourceField: SourceField;
 
     @Column()
     leftSourceFieldId: number;
 
     @JoinColumn({name: 'rightSourceFieldId'})
-    @OneToMany(() => SourceField, (field) => field.id)
+    @ManyToOne(() => SourceField, (field) => field.id)
     rightSourceField: SourceField;
 
     @Column()
     rightSourceFieldId: number;
 
     @JoinColumn({name: 'datasetId'})
-    @OneToMany(() => Dataset, (dataset) => dataset.joins)
+    @ManyToOne(() => Dataset, (dataset) => dataset.joins)
     dataset: Dataset;
 
     @Column()
