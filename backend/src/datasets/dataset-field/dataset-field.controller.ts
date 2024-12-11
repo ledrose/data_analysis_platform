@@ -4,6 +4,7 @@ import { DatasetsGuard } from '../datasets.guard';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { AddFieldDto } from './dto/add-field.dto';
 import { Auth } from 'src/auth/auth.decorator';
+import { User } from 'src/auth/entities/user.entity';
 
 @UseGuards(DatasetsGuard)
 @Controller('datasets/:dataset_id/fields')
@@ -33,8 +34,14 @@ export class DatasetFieldController {
     @Post('update/:field_id')
     @HttpCode(HttpStatus.OK)
 
-    async updateField(@Param('dataset_id') dataset_id: string,@Param('field_id') field_id: number,@Body() dataset_dto: UpdateFieldDto) {
-        return await this.datasetFieldService.updateField(dataset_id, field_id, dataset_dto);
+    async updateField(@Param('dataset_id') dataset_id: string,@Param('field_id') field_id: number,@Body() dataset_dto: UpdateFieldDto, @Auth() username: string) {
+        return await this.datasetFieldService.updateField(dataset_id, field_id, username, dataset_dto);
+    }
+
+    @Post('delete/:field_id')
+    @HttpCode(HttpStatus.OK)
+    async deleteField(@Param('dataset_id') dataset_id: string, @Param('field_id') field_id: number) {
+        return await this.datasetFieldService.deleteField(dataset_id, field_id);
     }
 
 }

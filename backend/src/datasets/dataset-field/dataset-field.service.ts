@@ -16,9 +16,6 @@ export class DatasetFieldService {
         private readonly datasetService: DatasetsService
     ) {}
 
-    async updateField(dataset_id: string, field_id: number, dataset_dto: UpdateFieldDto) {
-        throw new Error('Method not implemented.');
-    }
     async addField(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {
         
         const test = await this.datasetFieldRepository.find({where: {datasetId, name: In(fieldsDto.map((field) => field.name))}});
@@ -48,6 +45,29 @@ export class DatasetFieldService {
         const datasetFields = this.datasetFieldRepository.save(datasetFieldSave);
         return datasetFields
     }
+
+    async updateField(datasetId: string, fieldId: number, username: string, datasetDto: UpdateFieldDto) {
+        const field = await this.datasetFieldRepository.findOne({where: {id: fieldId, datasetId: datasetId}});
+        if (!field) {
+            throw new BadRequestException('Field not found');
+        }
+        let sourceField = undefined;
+        if (datasetDto.source_field) {
+            const tableColumns = new Map();
+            tableColumns.set(datasetDto.source_field.table, [datasetDto.source_field.column]);
+            const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
+            const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(connectionId, tableColumns);
+            sourceField = dbFieldsInfo[0].columnInfo[0].info;
+        }
+
+        const res = await this.datasetFieldRepository.preload({
+            id: fieldId,
+            ...datasetDto,
+            sourceFieldId: sourceField?.id
+        })
+        return await this.datasetFieldRepository.save(res);
+        // throw new Error('Method not implemented.');
+    }
     async getFields(datasetId: string) {
         return await this.datasetFieldRepository.find({where: {datasetId}});
     }
@@ -61,6 +81,15 @@ export class DatasetFieldService {
             }
         );
     }
+
+    async deleteField(datasetId: string, fieldId: number) {
+        const field = await this.datasetFieldRepository.findOne({where: {id: fieldId, datasetId: datasetId}});
+        if (!field) {
+            throw new BadRequestException('Field not found');
+        }
+        return await this.datasetFieldRepository.remove(field);
+    }
+
 
     private getUniqueTableColumns(fields_dto: AddFieldDto[]) : Map<string, string[]> {
         const tableColumns = new Map();

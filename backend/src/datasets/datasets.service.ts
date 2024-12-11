@@ -15,13 +15,32 @@ export class DatasetsService {
     ) {}
 
     async get_dataset(id: string,username: string) {
-        return await this.datasetRepository
-            .createQueryBuilder('dataset')
-            .leftJoin('dataset.connection', 'connection')
-            .leftJoin('connection.user', 'user')
-            .where('user.username = :username', { username })
-            .where('dataset.id = :id', { id })
-            .getOne();
+        const result =await this.datasetRepository.findOne(
+            {
+                where: {
+                    id: id,
+                    connection: {
+                        user: {
+                            username
+                        }
+                    }
+                },
+                join: {
+                    alias: 'dataset',
+                    leftJoin: {
+                        connection: 'dataset.connection',
+                        user: 'connection.user'
+                    }
+                }
+            }
+        )
+            // .createQueryBuilder('dataset')
+            // .leftJoin('dataset.connection', 'connection')
+            // .leftJoin('connection.user', 'user')
+            // .where('user.username = :username', { username })
+            // .where('dataset.id = :id', { id })
+            // .getOne();
+        return result;
     }
 
     async create(dataset_dto: AddDatasetDto,username: string) {
