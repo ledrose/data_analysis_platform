@@ -1,39 +1,80 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AddFieldDto } from './dto/add-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DatasetField } from '../entities/dataset-field.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SourceService } from 'src/source/source.service';
+import { DatasetsService } from '../datasets.service';
 
 @Injectable()
 export class DatasetFieldService {
     constructor(
         @InjectRepository(DatasetField)
         private readonly datasetFieldRepository: Repository<DatasetField>,
-        private readonly sourceService: SourceService
+        private readonly sourceService: SourceService,
+        private readonly datasetService: DatasetsService
     ) {}
 
     async updateField(dataset_id: string, field_id: number, dataset_dto: UpdateFieldDto) {
         throw new Error('Method not implemented.');
     }
-    async addField(dataset_id: string, fields_dto: AddFieldDto[]) {
+    async addField(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {
         
-        throw new Error('Method not implemented.');
+        const test = await this.datasetFieldRepository.find({where: {datasetId, name: In(fieldsDto.map((field) => field.name))}});
+        if (test.length != 0) {
+            throw new BadRequestException(`Fields with the names [${test.map((field) => field.name)}] already exists`);
+        }
+        
+        const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
+        const tableColumns = this.getUniqueTableColumns(fieldsDto);
+        console.log(tableColumns);
+        const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist( connectionId, tableColumns);
+        if (dbFieldsInfo.length === 0) {
+            return [];
+        }
+
+        const datasetFieldLike = fieldsDto.map((field) => {
+            return {
+                datasetId: datasetId,
+                // TODO this is stupid
+                sourceFieldId: dbFieldsInfo.find((fieldInfo) => fieldInfo.table === field.source_field.table)
+                    .columnInfo.find((columnInfo) => columnInfo.column === field.source_field.column)
+                    .info.id,
+                ...field
+            }
+        })
+        const datasetFieldSave = await this.datasetFieldRepository.create(datasetFieldLike);
+        const datasetFields = this.datasetFieldRepository.save(datasetFieldSave);
+        return datasetFields
     }
-    async getFields(dataset_id: string) {
-        return await this.datasetFieldRepository.find({where: {dataset_id}});
+    async getFields(datasetId: string) {
+        return await this.datasetFieldRepository.find({where: {datasetId}});
     }
-    async getField(dataset_id: string, field_id: number) {
+    async getField(datasetId: string, fieldId: number) {
         return await this.datasetFieldRepository.findOne(
             {
                 where: {
-                    id: field_id,
-                    dataset_id
+                    id: fieldId,
+                    datasetId
                 }
             }
         );
     }
 
+    private getUniqueTableColumns(fields_dto: AddFieldDto[]) : Map<string, string[]> {
+        const tableColumns = new Map();
+        for (const field of fields_dto) {
+            if (!tableColumns.has(field.source_field.table)) {
+                tableColumns.set(field.source_field.table, []);
+            }
+            if (!tableColumns.get(field.source_field.table).includes(field.source_field.column)) {
+                tableColumns.get(field.source_field.table).push(field.source_field.column);
+            }
+        }
+        console.log(`Table columns: ${tableColumns}`);
+        return tableColumns;
+    }
+    
 
 }

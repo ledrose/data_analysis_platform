@@ -27,8 +27,24 @@ export class ConnectionsService implements OnModuleDestroy{
     private readonly CONNECTION_TIMEOUT = 10*60*1000;
 
 
-    //Exception in case of failed connection to database
-    ///TODO unite Ids in database and hash table
+
+    async getConnetionNoChecks(dbId: string): Promise<Knex> {
+        if (this.connections.has(dbId)) {
+            const connectionInfo = this.connections.get(dbId);
+            this.resetConnectionTimer(dbId);
+            connectionInfo.lastUsed = Date.now();
+            return connectionInfo.knex;
+        }
+        const connectionFromDb = await this.connectionRepository.findOne({where: {id: dbId}});
+        if (!connectionFromDb) {
+            throw new NotFoundException("Id of this connection not found");
+        }
+        const knexInstance = this.createConnection(connectionFromDb);
+        await this.testConnection(knexInstance);
+        return knexInstance;
+    }
+
+
     async getConnection(dbId: string, username: string): Promise<Knex> {
         if (this.connections.has(dbId)
             && this.connections.get(dbId)?.config?.username === username

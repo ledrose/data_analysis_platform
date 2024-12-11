@@ -3,9 +3,10 @@ import { DatasetFieldService } from './dataset-field.service';
 import { DatasetsGuard } from '../datasets.guard';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { AddFieldDto } from './dto/add-field.dto';
+import { Auth } from 'src/auth/auth.decorator';
 
 @UseGuards(DatasetsGuard)
-@Controller('dataset/:dataset_id/field')
+@Controller('datasets/:dataset_id/fields')
 export class DatasetFieldController {
     constructor(
         private readonly datasetFieldService: DatasetFieldService
@@ -25,8 +26,8 @@ export class DatasetFieldController {
 
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
-    async addField(@Param('dataset_id') dataset_id: string, @Body() dataset_dto: AddFieldDto[]) {
-        return await this.datasetFieldService.addField(dataset_id, dataset_dto);
+    async addField(@Param('dataset_id') dataset_id: string, @Body() dataset_dto: AddFieldDto[], @Auth() username: string) {
+        return await this.datasetFieldService.addField(dataset_id, username, dataset_dto);
     }
 
     @Post('update/:field_id')

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Dataset } from "./dataset.entity";
 import { SourceField } from "src/source/entities/source-field.entity";
 
@@ -21,11 +21,12 @@ export enum AggregateType {
 }
 
 @Entity()
+@Unique('upsert_dataset_field', ["name", "datasetId"])
 export class DatasetField {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({unique: true})
     name: string;
 
     @JoinColumn({name: 'datasetId'})
@@ -33,7 +34,7 @@ export class DatasetField {
     dataset: Dataset;
 
     @Column()
-    dataset_id: string
+    datasetId: string
 
     @Column({type: "enum", enum: ValueType})
     type: ValueType;

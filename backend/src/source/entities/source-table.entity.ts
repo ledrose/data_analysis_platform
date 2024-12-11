@@ -15,7 +15,7 @@ export class SourceTable {
     sourceConnection: Connection;  
 
     @Column()
-    sourceConnectionId: number;
+    sourceConnectionId: string;
 
     @OneToMany(() => SourceField, (field) => field.sourceTable)
     fields: SourceField[]
