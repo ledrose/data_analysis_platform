@@ -25,13 +25,20 @@ export class DatasetsService {
                         }
                     }
                 },
-                join: {
-                    alias: 'dataset',
-                    leftJoin: {
-                        connection: 'dataset.connection',
-                        user: 'connection.user'
+                relations: {
+                    connection: {
+                        user: true
                     }
                 }
+                // join: {
+                //     alias: 'dataset',
+                //     leftJoin: {
+                //         user: 'connection.user',
+                //     },
+                //     leftJoinAndSelect: {
+                //         connection: 'dataset.connection'
+                //     }
+                // }
             }
         )
             // .createQueryBuilder('dataset')

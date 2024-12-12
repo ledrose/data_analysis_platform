@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
 import { AggregateType, ValueType } from "src/datasets/entities/dataset-field.entity";
 
 

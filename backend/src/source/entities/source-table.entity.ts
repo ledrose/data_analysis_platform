@@ -11,8 +11,8 @@ export class SourceTable {
     @Column()
     name: string;
 
+    @JoinColumn({name: 'sourceDatasetId'})
     @ManyToOne(() => Dataset, (dataset) => dataset.sourceTables)
-    @JoinColumn({name: 'sourceConnectionId'})
     sourceDataset: Dataset;  
 
     @Column()

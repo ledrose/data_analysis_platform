@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { SourceTable } from "./source-table.entity";
 
 @Entity()
@@ -15,7 +15,7 @@ export class SourceField {
 
     @JoinColumn({name: 'sourceTableId'})
     @ManyToOne(() => SourceTable, (sourceTable) => sourceTable.fields)
-    sourceTable: SourceTable    
+    sourceTable: SourceTable 
 
     @Column()
     sourceTableId: number

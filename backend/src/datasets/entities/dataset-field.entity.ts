@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Dataset } from "./dataset.entity";
 import { SourceField } from "src/source/entities/source-field.entity";
 
@@ -43,6 +43,7 @@ export class DatasetField {
     aggregateType: AggregateType;
 
     @JoinColumn({name: 'sourceFieldId'})
+    @ManyToOne(() => SourceField, (field) => field.id)
     sourceField: SourceField;
 
     @Column()
