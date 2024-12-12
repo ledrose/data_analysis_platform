@@ -15,14 +15,14 @@ export class QueryController {
     @HttpCode(HttpStatus.OK)
     @Get('dataset/:dataset_id/sql')
     async generateQuery(@Query() paginationDto: PaginationDto, @Param('dataset_id') datasetId: string, @Body() queryDto: QueryDatasetDto, @Auth() user: string) {
-        return await this.queryService.buildQDatasetuery(queryDto, datasetId, paginationDto, user);
+        return await this.queryService.SqlDatasetQuery(queryDto, datasetId, paginationDto, user);
         // throw new NotImplementedException()
     }
 
     @HttpCode(HttpStatus.OK)
-    @Post('execute')
-    async executeQuery(@Body() queryDto: QueryDatasetDto, @Auth() user: string) {
-        throw new NotImplementedException()
+    @Get('dataset/:dataset_id/execute')
+    async executeQuery(@Query() paginationDto: PaginationDto, @Param('dataset_id') datasetId: string, @Body() queryDto: QueryDatasetDto, @Auth() user: string) {
+        return await this.queryService.executeQuery(queryDto, datasetId, paginationDto, user);
     }
 
     

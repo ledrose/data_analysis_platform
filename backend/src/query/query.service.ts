@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConnectionsService } from 'src/connections/connections.service';
 import { QueryDatasetDto } from './dto/query-dataset.dto';
 import { DatasetsService } from 'src/datasets/datasets.service';
@@ -6,7 +6,8 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Dataset } from 'src/datasets/entities/dataset.entity';
 import { Repository } from 'typeorm';
-import { DatasetJoin } from 'src/datasets/entities/dataset-join.entity';
+import { DatasetJoin, JoinType } from 'src/datasets/entities/dataset-join.entity';
+import { Knex } from 'knex';
 
 @Injectable()
 export class QueryService {
@@ -18,8 +19,8 @@ export class QueryService {
         
     ) {}
     //TODO add 
-    async buildQDatasetuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
-        console.log(paginationDto);
+    async buildQDatasetQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
+        // console.log(paginationDto);
         // const dataset = await this.datasetService.get_dataset(datasetId,username);
         const datasetInfo = await this.datasetRepository.findOne({
             where: {id: datasetId},
@@ -57,13 +58,13 @@ export class QueryService {
         const joinedTables = [requiredTables[0]];
         let tempVariable = 0;
         let el: DatasetJoin;
-        while (tempVariable!=joinedTables.length && joinedTables.length!=requiredTables.length) {
+        while (joinedTables.length!=requiredTables.length) {
             tempVariable = joinedTables.length
             el = datasetInfo.joins.find((join) => joinedTables.includes(join.leftSourceField.sourceTable.name)
                 && !joinedTables.includes(join.rightSourceField.sourceTable.name));
             if (el!=undefined) {
                 joinedTables.push(el.rightSourceField.sourceTable.name);
-                knexBuilder.leftJoin(
+                this.addJoinFunction(knexBuilder)[el.type.toString()](
                     el.rightSourceField.sourceTable.name,
                     `${el.rightSourceField.sourceTable.name}.${el.rightSourceField.name}`,
                     `${el.leftSourceField.sourceTable.name}.${el.leftSourceField.name}`
@@ -73,16 +74,41 @@ export class QueryService {
                 && joinedTables.includes(join.rightSourceField.sourceTable.name));
             if (el!=undefined) {
                 joinedTables.push(el.rightSourceField.sourceTable.name);
-                knexBuilder.leftJoin(
+                this.addJoinFunction(knexBuilder)[el.type.toString()](
                     el.rightSourceField.sourceTable.name,
                     `${el.leftSourceField.sourceTable.name}.${el.leftSourceField.name}`,
                     `${el.rightSourceField.sourceTable.name}.${el.rightSourceField.name}`
                 )
             }
+            //Если ничего небыло сделано за циклы, значит таблицы не связаны
+            if (tempVariable==joinedTables.length) {
+                throw new InternalServerErrorException("Query build failed: Joins resolution failed")
+            }
         }
-        // return knexBuilder.toSQL().sql;
-        return await knexBuilder;
-        // return datasetInfo
+        //Avoiding auto execution, JS is stupid
+        return {builder:  knexBuilder};
+    }
+
+    addJoinFunction(knexBuilder: Knex.QueryBuilder) {
+        return {
+            "inner": (a,b,c) => knexBuilder.innerJoin(a,b,c),
+            "left": (a,b,c) => knexBuilder.leftJoin(a,b,c),
+            "right": (a,b,c) => knexBuilder.rightJoin(a,b,c),
+        }
+
+    }
+
+    async SqlDatasetQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
+        const res = await this.buildQDatasetQuery(queryDto, datasetId, paginationDto, username);
+        return res.builder.toSQL().sql;
+    }
+
+
+
+    async executeQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, user: string) {
+        const res = await this.buildQDatasetQuery(queryDto, datasetId, paginationDto, user);
+        return await res.builder;
+        // throw new Error('Method not implemented.');
     }
     
 

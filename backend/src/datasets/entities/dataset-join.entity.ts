@@ -6,7 +6,6 @@ export enum JoinType {
     INNER = "inner",
     LEFT = "left",
     RIGHT = "right",
-    FULL = "full"
 }
 
 @Entity()
