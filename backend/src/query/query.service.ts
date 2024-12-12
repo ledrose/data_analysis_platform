@@ -6,7 +6,6 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Dataset } from 'src/datasets/entities/dataset.entity';
 import { Repository } from 'typeorm';
-import { join } from 'path';
 import { DatasetJoin } from 'src/datasets/entities/dataset-join.entity';
 
 @Injectable()
@@ -18,21 +17,21 @@ export class QueryService {
         private readonly datasetRepository: Repository<Dataset>,
         
     ) {}
-
+    //TODO add 
     async buildQDatasetuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
-        const dataset = await this.datasetService.get_dataset(datasetId,username);
-        // console.log(dataset)
-        const knex = await this.connectionsService.getConnection(dataset.connection.id,username);
+        console.log(paginationDto);
+        // const dataset = await this.datasetService.get_dataset(datasetId,username);
         const datasetInfo = await this.datasetRepository.findOne({
             where: {id: datasetId},
             relations: {
+                connection: true,
                 joins: {
                     leftSourceField: {
                         sourceTable: true
                     },
                     rightSourceField: {
                         sourceTable: true
-                    }
+                    },
                 },
                 fields: {
                     sourceField: {
@@ -42,12 +41,15 @@ export class QueryService {
                 // sourceTables: true
             }            
         });
+        const knex = await this.connectionsService.getConnection(datasetInfo.connection.id,username);
         const requiredTables = [...new Set(datasetInfo.fields.map((field) => field.sourceField.sourceTable.name))];
         let knexBuilder = knex.queryBuilder();
         const queryFields = datasetInfo.fields.map((field) => `${field.sourceField.sourceTable.name}.${field.sourceField.name} as ${field.name}`);
         for (const field of queryFields) {
             knexBuilder = knexBuilder.select(field);
         }
+        knexBuilder = knexBuilder.offset(paginationDto.offset,{skipBinding: true})
+        knexBuilder = knexBuilder.limit(paginationDto.limit,{skipBinding: true});
         knexBuilder = knexBuilder.from(requiredTables[0]);
 
         //Здесь мы пытаемся сделать идиотское дерево из joinов и добавляем только те у которых одной вершины нету в списке
@@ -78,6 +80,7 @@ export class QueryService {
                 )
             }
         }
+        // return knexBuilder.toSQL().sql;
         return await knexBuilder;
         // return datasetInfo
     }

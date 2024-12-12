@@ -7,6 +7,7 @@ import { Connection } from 'src/connections/entities/connection.entity';
 
 @Injectable()
 export class DatasetsService {
+    
     constructor(
         @InjectRepository(Dataset)
         private readonly datasetRepository: Repository<Dataset>,
@@ -48,6 +49,10 @@ export class DatasetsService {
             // .where('dataset.id = :id', { id })
             // .getOne();
         return result;
+    }
+
+    async getAllDatasets(user: string) {
+        return await this.datasetRepository.find({where: {connection: {user: {username: user}}}});
     }
 
     async getDatasetNoCheck(id: string) {

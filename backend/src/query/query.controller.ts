@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, NotImplementedException, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Param, Post, Query } from '@nestjs/common';
 import { ConnectionsService } from 'src/connections/connections.service';
 import { QueryDatasetDto } from './dto/query-dataset.dto';
 import { Auth } from 'src/auth/auth.decorator';
@@ -13,7 +13,7 @@ export class QueryController {
 
 
     @HttpCode(HttpStatus.OK)
-    @Post('dataset/:dataset_id/sql')
+    @Get('dataset/:dataset_id/sql')
     async generateQuery(@Query() paginationDto: PaginationDto, @Param('dataset_id') datasetId: string, @Body() queryDto: QueryDatasetDto, @Auth() user: string) {
         return await this.queryService.buildQDatasetuery(queryDto, datasetId, paginationDto, user);
         // throw new NotImplementedException()

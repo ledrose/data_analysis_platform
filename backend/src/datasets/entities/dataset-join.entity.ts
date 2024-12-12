@@ -5,7 +5,8 @@ import { SourceField } from "src/source/entities/source-field.entity";
 export enum JoinType {
     INNER = "inner",
     LEFT = "left",
-    RIGHT = "right"
+    RIGHT = "right",
+    FULL = "full"
 }
 
 @Entity()

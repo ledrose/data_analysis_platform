@@ -30,9 +30,7 @@ export class AuthMiddleware implements NestMiddleware {
         return res.status(401).json({ message: 'Invalid token', "statusCode": "401" });
       }
     }
-     finally {
-      next();
-    }
+    next();
   }
 
 

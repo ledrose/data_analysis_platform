@@ -19,6 +19,7 @@ export class ConnectionsController {
     @HttpCode(HttpStatus.OK)
     async get_by_id(@Param('id') id: string, @Auth() user: string) {
         const knexInstance = await this.connectionsService.getConnection(id, user);
+        console.log(knexInstance.client.config);
         const columns = await this.connectionMetadataService.getAllColumns(knexInstance);
         const joins = await this.connectionMetadataService.getAllJoins(knexInstance);
         return {

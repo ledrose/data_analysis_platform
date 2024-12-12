@@ -5,6 +5,7 @@ import { SchemaInspector } from "knex-schema-inspector/dist/types/schema-inspect
 import { JoinInfoDto, TableInfoDto } from "./dto/table-info.dto";
 import { ConnectionsService } from "./connections.service";
 import { Column } from "knex-schema-inspector/dist/types/column";
+import { inspect } from "util";
 
 export type TableColumnInfo<Type> = {
     table: string;
@@ -78,8 +79,10 @@ export class ConnectionMetadataService {
     }
 
     async getAllColumns(knexInstance: Knex) : Promise<TableInfoDto[]>  {
-        const inspector = CreateSchemaInspector(knexInstance);
+        const inspector = CreateSchemaInspector(knexInstance)
+        // inspector.withSchema("production");
         const tables = await inspector.tables();
+        console.log(tables);
         return await this.getAllColumnsByTables(inspector, tables);
     }
 

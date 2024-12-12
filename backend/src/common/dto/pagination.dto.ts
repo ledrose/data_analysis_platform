@@ -1,13 +1,13 @@
-import { IsNumber, IsPositive } from "class-validator"
+import { IsNumber, IsPositive, Min } from "class-validator"
 
 export class PaginationDto {
     @IsNumber()
     @IsPositive()
-    limit: number
+    limit: number;
 
     @IsNumber()
-    @IsPositive()
-    page: number
+    @Min(0) 
+    offset: number;
 }
 
 export class PaginationResponseDto<T> {

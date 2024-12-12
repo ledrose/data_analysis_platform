@@ -62,11 +62,17 @@ export class ConnectionsService implements OnModuleDestroy{
             return connectionInfo.knex;
         }
         const connectionFromDb = await this.connectionRepository
-            .createQueryBuilder("connection")
-            .innerJoin("connection.user", "user")
-            .where("connection.id = :id", {id: dbId})
-            .where("user.username = :username", {username})
-            .getOne(); 
+            .findOne({
+                where: {
+                    id: dbId,
+                    user: {
+                        username
+                    }
+                },
+                relations: {
+                    user: true
+                }
+            });
         console.log(connectionFromDb);
         if (!connectionFromDb) {
             throw new NotFoundException("Id of this connection not found");
@@ -107,13 +113,7 @@ export class ConnectionsService implements OnModuleDestroy{
 
     private async getConnectionFromDbByConfig(config: ConnectionDto, username: string): Promise<Connection> {
         const dbConnection = await this.connectionRepository.findOne({where: {
-            name: config.name,
-            password: config.password,
-            username: config.username,
-            database: config.database,
-            host: config.host,
-            port: config.port,
-            type: config.type
+            ...config
         }});
         if (dbConnection) {
             return dbConnection;
@@ -148,7 +148,8 @@ export class ConnectionsService implements OnModuleDestroy{
             pool: {
                 min: 0,
                 max: 3
-            }
+            },
+            ...(connection?.schema && {searchPath: connection.schema})
         });
     }
 

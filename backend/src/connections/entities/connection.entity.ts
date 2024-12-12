@@ -37,6 +37,9 @@ export class Connection {
     @Column()
     database: string
 
+    @Column({nullable: true})
+    schema?: string
+
     @JoinColumn()
     @ManyToOne(() => User, (user) => user.connections)
     user: User
