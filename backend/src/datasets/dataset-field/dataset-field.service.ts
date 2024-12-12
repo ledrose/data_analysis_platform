@@ -23,10 +23,10 @@ export class DatasetFieldService {
             throw new BadRequestException(`Fields with the names [${test.map((field) => field.name)}] already exists`);
         }
         
-        const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
+        // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
         const tableColumns = this.getUniqueTableColumns(fieldsDto);
         console.log(tableColumns);
-        const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist( connectionId, tableColumns);
+        const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(datasetId, tableColumns);
         if (dbFieldsInfo.length === 0) {
             return [];
         }
@@ -55,8 +55,8 @@ export class DatasetFieldService {
         if (datasetDto.source_field) {
             const tableColumns = new Map();
             tableColumns.set(datasetDto.source_field.table, [datasetDto.source_field.column]);
-            const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
-            const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(connectionId, tableColumns);
+            // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
+            const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(datasetId, tableColumns);
             sourceField = dbFieldsInfo[0].columnInfo[0].info;
         }
 

@@ -7,6 +7,7 @@ import { ConnectionsService } from 'src/connections/connections.service';
 import { ColumnInfo, ConnectionMetadataService, TableColumnInfo } from 'src/connections/connections.metadata.service';
 import { Column } from 'knex-schema-inspector/dist/types/column';
 import { table } from 'console';
+import { DatasetsService } from 'src/datasets/datasets.service';
 
 @Injectable()
 export class SourceService {
@@ -15,28 +16,48 @@ export class SourceService {
         private readonly sourceTableRepository: Repository<SourceTable>,
         @InjectRepository(SourceField)
         private readonly sourceFieldRepository: Repository<SourceField>,
-        private readonly connectionMetadataService: ConnectionMetadataService
+        private readonly connectionMetadataService: ConnectionMetadataService,
+        private readonly datasetService: DatasetsService,
     ) {}
 
 
-    async ensureSourceFieldsExist(connectionId: string, tableColumns: Map<string, string[]>) {
-        const tableColumnInfo = await this.connectionMetadataService.findColumns(connectionId, tableColumns);
-        console.log(JSON.stringify(tableColumnInfo));
-        return await this.getOrCreateSourceTables(connectionId, tableColumnInfo);
+    async ensureSourceFieldsExist(datasetId: string, tableColumns: Map<string, string[]>) {
+        const connectionId = (await this.datasetService.getDatasetNoCheck(datasetId))?.connectionId
+        const tableColumnInfo = await this.connectionMetadataService.findMetadataForColumns(connectionId, tableColumns);
+        return await this.getOrCreateSourceColumns(datasetId, tableColumnInfo);
+    }
+
+    async ensureSourceTableExists(datasetId: string, tableName: string) {
+        const connectionId = (await this.datasetService.getDatasetNoCheck(datasetId))?.connectionId;
+        await this.connectionMetadataService.checkTablesExisting(connectionId,[tableName])
+        return await this.createSourceTable(datasetId, tableName);
+    }
+
+    async isSourceTableExists(datasetId: string) {
+        const res = await this.sourceTableRepository.findOne({where: {sourceDatasetId: datasetId }});
+        console.log(res)
+        return res != null;
+        // return (await this.sourceTableRepository.find({where: {name: tableName, sourceConnectionId: connectionId}})).length > 0;
+    }
+
+
+    async createSourceTable(datasetId: string, tableName: string) { 
+        let sourceTable = await this.sourceTableRepository.findOne({where: {name: tableName, sourceDatasetId: datasetId}});
+        if (!sourceTable) {
+            const sourceTable = this.sourceTableRepository.create({name: tableName, sourceDatasetId: datasetId});
+            return await this.sourceTableRepository.save(sourceTable);
+        }
+        return sourceTable;
     }
 
     //TODO optimize to use bulk insert
-    private async getOrCreateSourceTables(connectionId: string, tableColumnInfo: TableColumnInfo<Column>[]): Promise<TableColumnInfo<SourceField>[]> {
+    private async getOrCreateSourceColumns(datasetId: string, tableColumnInfo: TableColumnInfo<Column>[]): Promise<TableColumnInfo<SourceField>[]> {
         const tableColumnFields: TableColumnInfo<SourceField>[] = [];
         for (const tableInfo of tableColumnInfo) {
-            const columnInfo: ColumnInfo<SourceField>[] = [];
+            // const columnInfo: ColumnInfo<SourceField>[] = [];
             let sourceTable = await this.sourceTableRepository.findOne({where: {name: tableInfo.table}});
             if (!sourceTable) {
-                const newSourceTable = this.sourceTableRepository.create({
-                    name: tableInfo.table,
-                    sourceConnectionId: connectionId,
-                });
-                sourceTable = await this.sourceTableRepository.save(newSourceTable);
+                throw new BadRequestException(`Table ${tableInfo.table} is connected to dataset`);
             }
             const insertFields = tableInfo.columnInfo.map((columnInfo) => {
                 return {
@@ -45,7 +66,6 @@ export class SourceService {
                     dataType: columnInfo.info.data_type,
                 }
             });
-
 
 
             // const names = insertFields.map((field) => field.name);
@@ -88,9 +108,5 @@ export class SourceService {
             })
         }
         return tableColumnFields;
-    }
-
-    async ensureSourceTablesExist(tableNames: string[]) {
-        throw new Error('Method not implemented.');
     }
 }

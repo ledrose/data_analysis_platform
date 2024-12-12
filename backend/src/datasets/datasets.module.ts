@@ -9,10 +9,11 @@ import { AuthModule } from 'src/auth/auth.module';
 import { Connection } from 'src/connections/entities/connection.entity';
 import { DatasetFieldModule } from './dataset-field/dataset-field.module';
 import { DatasetsGuard } from './datasets.guard';
+import { DatasetTableModule } from './dataset-table/dataset-table.module';
 
 @Module({
   providers: [DatasetsService,DatasetsGuard],  
-  imports: [TypeOrmModule.forFeature([Dataset,DatasetField,DatasetJoin,Connection]), AuthModule, DatasetFieldModule],
+  imports: [TypeOrmModule.forFeature([Dataset,DatasetField,DatasetJoin,Connection]), AuthModule, DatasetFieldModule, DatasetTableModule],
   controllers: [DatasetsController],
   exports: [DatasetsService,AuthModule]
 })

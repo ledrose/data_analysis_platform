@@ -3,7 +3,6 @@ import { Knex } from "knex";
 import CreateSchemaInspector from 'knex-schema-inspector';
 import { SchemaInspector } from "knex-schema-inspector/dist/types/schema-inspector";
 import { JoinInfoDto, TableInfoDto } from "./dto/table-info.dto";
-import { table } from "console";
 import { ConnectionsService } from "./connections.service";
 import { Column } from "knex-schema-inspector/dist/types/column";
 
@@ -26,12 +25,23 @@ export class ConnectionMetadataService {
 
 
 
-    async findColumns(connectionId: string, tableColumns: Map<string, string[]>) : Promise<TableColumnInfo<Column>[]> {
+    async findMetadataForColumns(connectionId: string, tableColumns: Map<string, string[]>) : Promise<TableColumnInfo<Column>[]> {
         const knexInstance = await this.connectionsService.getConnetionNoChecks(connectionId);
         const inspector = CreateSchemaInspector(knexInstance);
         const columnInfo = await inspector.columnInfo();
         const result: TableColumnInfo<Column>[] = [];
         for (const [table, columns] of tableColumns) {
+            if (!columns) {
+                if (!(await inspector.hasTable(table))){
+                    throw new BadRequestException(`Table ${table} does not exist`);
+                }
+                result.push({
+                    "table": table,
+                    "columnInfo": []
+                })
+                continue;
+            }
+            const columnsInfo = await inspector.columnInfo(table);
             const tableResult: ColumnInfo<Column>[] = [];
             for (const column of columns) {
                 const fullColumnInfo = this.findFullColumnInfo(columnInfo, table, column);
@@ -49,6 +59,18 @@ export class ConnectionMetadataService {
             });
         }
         return result;
+    }
+
+    async checkTablesExisting(connectionId: string, tables: string[]) : Promise<boolean> {
+        const knexInstance = await this.connectionsService.getConnetionNoChecks(connectionId);
+        const inspector = CreateSchemaInspector(knexInstance);
+        const connectionTables = await inspector.tables();
+        console.log(connectionTables);
+        const missingTables = tables.filter((t) => !connectionTables.includes(t));
+        if (missingTables.length != 0) {
+            throw new BadRequestException(`Tables ${missingTables} do not in connection ${connectionId}`);
+        }
+        return true;
     }
 
     private findFullColumnInfo(existing_columns: Column[], table: string, column: string) : Column | undefined {

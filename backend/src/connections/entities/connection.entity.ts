@@ -44,6 +44,6 @@ export class Connection {
     @OneToMany(() => Dataset, (dataset) => dataset.connection)
     datasets: Dataset[]
 
-    @OneToMany(() => SourceTable, (dataset) => dataset.sourceConnection)
-    tables: SourceTable[]
+    // @OneToMany(() => SourceTable, (dataset) => dataset.sourceConnection)
+    // tables: SourceTable[]
 }

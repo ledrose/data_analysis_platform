@@ -2,6 +2,12 @@ import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne, 
 import { Dataset } from "./dataset.entity";
 import { SourceField } from "src/source/entities/source-field.entity";
 
+export enum JoinType {
+    INNER = "inner",
+    LEFT = "left",
+    RIGHT = "right"
+}
+
 @Entity()
 export class DatasetJoin {
     @PrimaryGeneratedColumn()
@@ -20,6 +26,9 @@ export class DatasetJoin {
 
     @Column()
     rightSourceFieldId: number;
+
+    @Column({type: "enum", enum: JoinType})
+    type: JoinType;
 
     @JoinColumn({name: 'datasetId'})
     @ManyToOne(() => Dataset, (dataset) => dataset.joins)

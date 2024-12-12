@@ -2,6 +2,7 @@ import { Connection } from "../../connections/entities/connection.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { DatasetField } from "./dataset-field.entity";
 import { DatasetJoin } from "./dataset-join.entity";
+import { SourceTable } from "src/source/entities/source-table.entity";
 
 @Entity()
 export class Dataset {
@@ -26,4 +27,7 @@ export class Dataset {
 
     @OneToMany(() => DatasetJoin, (join) => join.dataset)
     joins: DatasetJoin[]
+
+    @OneToMany(() => SourceTable, (table) => table.sourceDataset)
+    sourceTables: SourceTable[];
 }

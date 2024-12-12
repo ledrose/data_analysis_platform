@@ -43,6 +43,10 @@ export class DatasetsService {
         return result;
     }
 
+    async getDatasetNoCheck(id: string) {
+        return await this.datasetRepository.findOne({where: {id}});
+    }
+
     async create(dataset_dto: AddDatasetDto,username: string) {
         const dbDataset = await this.datasetRepository
             .findOne({
