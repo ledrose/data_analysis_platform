@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Dataset } from "./dataset.entity";
 import { SourceField } from "src/source/entities/source-field.entity";
+import { DatasetJoin } from "./dataset-join.entity";
 
 export enum DtoType {
     BASE = "base",
@@ -25,6 +26,12 @@ export enum AggregateType {
 export class DatasetField {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @OneToMany(() => DatasetJoin, (join) => join.leftSourceField, {onDelete: 'CASCADE'})    
+    leftJoin: DatasetJoin[]
+
+    @OneToMany(() => DatasetJoin, (join) => join.leftSourceField, {onDelete: 'CASCADE'})    
+    rightJoin: DatasetJoin[]
 
     @Column({unique: true})
     name: string;

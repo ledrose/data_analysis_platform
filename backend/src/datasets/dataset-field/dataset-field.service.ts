@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { AddFieldDto } from './dto/add-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DatasetField } from '../entities/dataset-field.entity';
+import { DatasetField, ValueType } from '../entities/dataset-field.entity';
 import { In, Repository } from 'typeorm';
 import { SourceService } from 'src/source/source.service';
 import { DatasetsService } from '../datasets.service';
@@ -13,16 +13,20 @@ export class DatasetFieldService {
         @InjectRepository(DatasetField)
         private readonly datasetFieldRepository: Repository<DatasetField>,
         private readonly sourceService: SourceService,
-        private readonly datasetService: DatasetsService
     ) {}
+    convertToDatasetFieldType(sourceFieldType: string): ValueType {
+        if (sourceFieldType in []) {
+        return ValueType.STRING
+        }
+        return ValueType.STRING
+    }
 
-    async addField(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {
+    async addFields(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {
         
         const test = await this.datasetFieldRepository.find({where: {datasetId, name: In(fieldsDto.map((field) => field.name))}});
         if (test.length != 0) {
             throw new BadRequestException(`Fields with the names [${test.map((field) => field.name)}] already exists`);
         }
-        
         // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
         const tableColumns = this.getUniqueTableColumns(fieldsDto);
         console.log(tableColumns);

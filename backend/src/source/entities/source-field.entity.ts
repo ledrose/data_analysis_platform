@@ -15,7 +15,7 @@ export class SourceField {
 
     @JoinColumn({name: 'sourceTableId'})
     @ManyToOne(() => SourceTable, (sourceTable) => sourceTable.fields)
-    sourceTable: SourceTable 
+    sourceTable: SourceTable
 
     @Column()
     sourceTableId: number

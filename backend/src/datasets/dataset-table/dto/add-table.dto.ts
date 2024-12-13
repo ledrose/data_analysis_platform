@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsString, ValidateIf, ValidateNested } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString, ValidateIf, ValidateNested } from "class-validator";
 import { JoinType } from "src/datasets/entities/dataset-join.entity";
 
 
@@ -17,6 +17,9 @@ export class JoinDto {
 export class AddBaseTableDto {
     @IsString()
     name: string
+
+    @IsBoolean()
+    auto_populate: boolean = true;
 }   
 
 export class addJoinedTableDto {

@@ -18,7 +18,7 @@ export class SourceTable {
     @Column()
     sourceDatasetId: string;
 
-    @OneToMany(() => SourceField, (field) => field.sourceTable)
+    @OneToMany(() => SourceField, (field) => field.sourceTable,{onDelete: 'CASCADE'})
     fields: SourceField[]
 
 }

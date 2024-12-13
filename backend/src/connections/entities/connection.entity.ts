@@ -44,7 +44,7 @@ export class Connection {
     @ManyToOne(() => User, (user) => user.connections)
     user: User
 
-    @OneToMany(() => Dataset, (dataset) => dataset.connection)
+    @OneToMany(() => Dataset, (dataset) => dataset.connection, {onDelete: 'CASCADE'})
     datasets: Dataset[]
 
     // @OneToMany(() => SourceTable, (dataset) => dataset.sourceConnection)

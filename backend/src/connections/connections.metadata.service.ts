@@ -74,6 +74,12 @@ export class ConnectionMetadataService {
         return true;
     }
 
+    async getColumnsOfTable(connectionId: string, table: string) : Promise<Column[]> {
+        const knexInstance = await this.connectionsService.getConnetionNoChecks(connectionId);
+        const inspector = CreateSchemaInspector(knexInstance);
+        return await inspector.columnInfo(table);
+    }
+
     private findFullColumnInfo(existing_columns: Column[], table: string, column: string) : Column | undefined {
         return existing_columns.find((c) => c.table === table && c.name === column);
     }

@@ -9,6 +9,7 @@ import { SourceModule } from 'src/source/source.module';
 @Module({
   providers: [DatasetFieldService],
   imports: [forwardRef(() => DatasetsModule),TypeOrmModule.forFeature([DatasetField]), SourceModule],
-  controllers: [DatasetFieldController]
+  controllers: [DatasetFieldController],
+  exports: [DatasetFieldService]
 })
 export class DatasetFieldModule {}

@@ -22,12 +22,12 @@ export class Dataset {
     @Column()
     connectionId: string
 
-    @OneToMany(() => DatasetField, (field) => field.dataset)
+    @OneToMany(() => DatasetField, (field) => field.dataset, {onDelete: 'CASCADE'})
     fields: DatasetField[];
 
-    @OneToMany(() => DatasetJoin, (join) => join.dataset)
+    @OneToMany(() => DatasetJoin, (join) => join.dataset,{onDelete: 'CASCADE'})
     joins: DatasetJoin[]
 
-    @OneToMany(() => SourceTable, (table) => table.sourceDataset)
+    @OneToMany(() => SourceTable, (table) => table.sourceDataset, {onDelete: 'CASCADE'})
     sourceTables: SourceTable[];
 }

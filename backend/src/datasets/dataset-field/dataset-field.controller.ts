@@ -28,7 +28,7 @@ export class DatasetFieldController {
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     async addField(@Param('dataset_id') dataset_id: string, @Body() dataset_dto: AddFieldDto[], @Auth() username: string) {
-        return await this.datasetFieldService.addField(dataset_id, username, dataset_dto);
+        return await this.datasetFieldService.addFields(dataset_id, username, dataset_dto);
     }
 
     @Post('update/:field_id')

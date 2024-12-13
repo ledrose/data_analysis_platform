@@ -51,7 +51,7 @@ export class SourceService {
     }
 
     //TODO optimize to use bulk insert
-    private async getOrCreateSourceColumns(datasetId: string, tableColumnInfo: TableColumnInfo<Column>[]): Promise<TableColumnInfo<SourceField>[]> {
+    async getOrCreateSourceColumns(datasetId: string, tableColumnInfo: TableColumnInfo<Column>[]): Promise<TableColumnInfo<SourceField>[]> {
         const tableColumnFields: TableColumnInfo<SourceField>[] = [];
         for (const tableInfo of tableColumnInfo) {
             // const columnInfo: ColumnInfo<SourceField>[] = [];
