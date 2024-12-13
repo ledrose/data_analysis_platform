@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Dataset } from "./dataset.entity";
 import { SourceField } from "src/source/entities/source-field.entity";
 import { DatasetJoin } from "./dataset-join.entity";
@@ -46,13 +46,17 @@ export class DatasetField {
     @Column({type: "enum", enum: ValueType})
     type: ValueType;
 
-    @Column({type: "enum", enum: AggregateType})
+    @Column({default: true})
+    isSimple: boolean
+
+    @Column({type: "enum", enum: AggregateType, nullable: true})
     aggregateType: AggregateType;
 
-    @JoinColumn({name: 'sourceFieldId'})
-    @ManyToOne(() => SourceField, (field) => field.id)
-    sourceField: SourceField;
+    @Column({nullable: true})
+    formula: string
 
-    @Column()
-    sourceFieldId: number;
+    @JoinTable()
+    // @JoinColumn({name: 'sourceFieldId'})
+    @ManyToMany(() => SourceField,{cascade: true})
+    sourceFields: SourceField[];
 }

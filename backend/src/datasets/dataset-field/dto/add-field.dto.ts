@@ -1,5 +1,7 @@
 import { Type } from "class-transformer";
-import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Validate, ValidateIf, ValidateNested, ValidationArguments, ValidatorConstraintInterface } from "class-validator";
+import { format } from "path";
+import { CustomFieldsConstraint } from "src/common/fieldConstraint";
 import { AggregateType, ValueType } from "src/datasets/entities/dataset-field.entity";
 
 
@@ -16,18 +18,20 @@ export class AddFieldDto {
     name: string;
     @IsEnum(ValueType)
     type: ValueType;
-    @IsEnum(AggregateType)
-    aggregateType: AggregateType;
-    @ValidateNested()
-    @Type(type => SourceFieldLocationDto)
-    source_field: SourceFieldLocationDto;
-}
 
-// export class SourceFieldColumnDto {
-//     column: string;
-//     field: AddFieldDto
-// }
-// export class TestDto {
-//     table: string;
-//     sourceFieldColumnDto: SourceFieldColumnDto
-// }
+    @IsBoolean()
+    isSimple: boolean;
+
+    @ValidateIf(o => o.is_simple === true)
+    @IsEnum(AggregateType)
+    aggregateType?: AggregateType;
+
+    @ValidateIf(o => o.is_simple === false)
+    @Validate(CustomFieldsConstraint)
+    @IsString()
+    formula?: string;
+
+    @Type(type => SourceFieldLocationDto)
+    @ValidateNested({each: true})
+    sourceFields: SourceFieldLocationDto[];
+}

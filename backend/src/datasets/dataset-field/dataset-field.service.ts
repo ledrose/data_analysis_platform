@@ -15,9 +15,9 @@ export class DatasetFieldService {
         private readonly sourceService: SourceService,
     ) {}
     convertToDatasetFieldType(sourceFieldType: string): ValueType {
-        if (sourceFieldType in []) {
-        return ValueType.STRING
-        }
+        // if (sourceFieldType in []) {
+        //     return ValueType.STRING
+        // }
         return ValueType.STRING
     }
 
@@ -35,16 +35,20 @@ export class DatasetFieldService {
             return [];
         }
 
+        
         const datasetFieldLike = fieldsDto.map((field) => {
             return {
                 datasetId: datasetId,
+                ...field,
                 // TODO this is stupid
-                sourceFieldId: dbFieldsInfo.find((fieldInfo) => fieldInfo.table === field.source_field.table)
-                    .columnInfo.find((columnInfo) => columnInfo.column === field.source_field.column)
-                    .info.id,
-                ...field
+                sourceFields: field.sourceFields.map((sourceField) => 
+                    dbFieldsInfo
+                        .find((fieldInfo) => fieldInfo.table === sourceField.table).columnInfo
+                        .find((columnInfo) => columnInfo.column === sourceField.column).info
+                )
             }
         })
+        console.log(datasetFieldLike);
         const datasetFieldSave = await this.datasetFieldRepository.create(datasetFieldLike);
         const datasetFields = this.datasetFieldRepository.save(datasetFieldSave);
         return datasetFields
@@ -55,19 +59,24 @@ export class DatasetFieldService {
         if (!field) {
             throw new BadRequestException('Field not found');
         }
-        let sourceField = undefined;
-        if (datasetDto.source_field) {
+        let sourceFields = undefined;
+        if (datasetDto.sourceFields) {
             const tableColumns = new Map();
-            tableColumns.set(datasetDto.source_field.table, [datasetDto.source_field.column]);
+            for (const sourceField of datasetDto.sourceFields) {
+                if (!tableColumns.has(sourceField.table)) {
+                    tableColumns.set(sourceField.table, []);
+                }
+                tableColumns.get(sourceField.table).push(sourceField.column);
+            }
             // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
             const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(datasetId, tableColumns);
-            sourceField = dbFieldsInfo[0].columnInfo[0].info;
+            sourceFields = dbFieldsInfo.flatMap((fieldInfo) => fieldInfo.columnInfo.flatMap((columnInfo) => columnInfo.info));
         }
 
         const res = await this.datasetFieldRepository.preload({
             id: fieldId,
             ...datasetDto,
-            sourceFieldId: sourceField?.id
+            sourceFields: sourceFields,
         })
         return await this.datasetFieldRepository.save(res);
         // throw new Error('Method not implemented.');
@@ -97,12 +106,12 @@ export class DatasetFieldService {
 
     private getUniqueTableColumns(fields_dto: AddFieldDto[]) : Map<string, string[]> {
         const tableColumns = new Map();
-        for (const field of fields_dto) {
-            if (!tableColumns.has(field.source_field.table)) {
-                tableColumns.set(field.source_field.table, []);
+        for (const field of fields_dto.map((field) => field.sourceFields).flat()) {
+            if (!tableColumns.has(field.table)) {
+                tableColumns.set(field.table, []);
             }
-            if (!tableColumns.get(field.source_field.table).includes(field.source_field.column)) {
-                tableColumns.get(field.source_field.table).push(field.source_field.column);
+            if (!tableColumns.get(field.table).includes(field.column)) {
+                tableColumns.get(field.table).push(field.column);
             }
         }
         console.log(`Table columns: ${tableColumns}`);

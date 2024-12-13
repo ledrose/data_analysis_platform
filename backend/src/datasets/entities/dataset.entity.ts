@@ -30,4 +30,7 @@ export class Dataset {
 
     @OneToMany(() => SourceTable, (table) => table.sourceDataset, {onDelete: 'CASCADE'})
     sourceTables: SourceTable[];
+
+    @Column({nullable: true})
+    formula?: string
 }

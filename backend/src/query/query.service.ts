@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotImplementedException } from '@nestjs/common';
 import { ConnectionsService } from 'src/connections/connections.service';
 import { QueryDatasetDto } from './dto/query-dataset.dto';
 import { DatasetsService } from 'src/datasets/datasets.service';
@@ -8,6 +8,7 @@ import { Dataset } from 'src/datasets/entities/dataset.entity';
 import { Repository } from 'typeorm';
 import { DatasetJoin, JoinType } from 'src/datasets/entities/dataset-join.entity';
 import { Knex } from 'knex';
+import { AggregateType } from 'src/datasets/entities/dataset-field.entity';
 
 @Injectable()
 export class QueryService {
@@ -20,8 +21,7 @@ export class QueryService {
     ) {}
     //TODO add 
     async buildQDatasetQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
-        // console.log(paginationDto);
-        // const dataset = await this.datasetService.get_dataset(datasetId,username);
+        // throw new NotImplementedException('buildQDatasetQuery');
         const datasetInfo = await this.datasetRepository.findOne({
             where: {id: datasetId},
             relations: {
@@ -35,7 +35,7 @@ export class QueryService {
                     },
                 },
                 fields: {
-                    sourceField: {
+                    sourceFields: {
                         sourceTable: true
                     }
                 },
@@ -43,12 +43,22 @@ export class QueryService {
             }            
         });
         const knex = await this.connectionsService.getConnection(datasetInfo.connection.id,username);
-        const requiredTables = [...new Set(datasetInfo.fields.map((field) => field.sourceField.sourceTable.name))];
+        const requiredTables = [...new Set(datasetInfo.fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
         let knexBuilder = knex.queryBuilder();
-        const queryFields = datasetInfo.fields.map((field) => `${field.sourceField.sourceTable.name}.${field.sourceField.name} as ${field.name}`);
-        for (const field of queryFields) {
-            knexBuilder = knexBuilder.select(field);
-        }
+        const queryFields = datasetInfo.fields.forEach((field) => {
+            if (field.isSimple) {
+                const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} as ${field.name}`;   
+                knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+            } else {
+                let fieldString = `${field.formula} as ${field.name}`;
+                for (let i=0; i<field.sourceFields.length;i++) {
+                    fieldString = fieldString.replaceAll("${"+i+"}",`"${field.sourceFields[i].sourceTable.name}"."${field.sourceFields[i].name}"`);
+                }
+                knexBuilder = knexBuilder.select(knex.raw(fieldString));
+                // knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+            }
+        })
+
         knexBuilder = knexBuilder.offset(paginationDto.offset,{skipBinding: true})
         knexBuilder = knexBuilder.limit(paginationDto.limit,{skipBinding: true});
         knexBuilder = knexBuilder.from(requiredTables[0]);
@@ -89,6 +99,18 @@ export class QueryService {
         return {builder:  knexBuilder};
     }
 
+    addAggregateFunction(knexBuilder: Knex.QueryBuilder,aggregateType: AggregateType) {
+        return (a: string) => {
+            switch (aggregateType) {
+                case AggregateType.SUM:
+                    return knexBuilder.sum(a);
+                case AggregateType.COUNT:
+                    return knexBuilder.count(a);
+                case AggregateType.NONE:
+                    return knexBuilder.select(a);
+            }
+        }
+    }
     addJoinFunction(knexBuilder: Knex.QueryBuilder) {
         return {
             "inner": (a,b,c) => knexBuilder.innerJoin(a,b,c),

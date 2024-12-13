@@ -38,10 +38,11 @@ export class DatasetTableService {
         const addFieldDto = columns.map((c) => {
             return {
                 name: c.name,
-                source_field: {
+                sourceFields: [{
                     table: res.name,
                     column: c.name
-                },
+                }],
+                isSimple: true,
                 type: this.datasetFieldService.convertToDatasetFieldType(c.data_type),
                 aggregateType: AggregateType.NONE
             }
