@@ -11,8 +11,11 @@ export enum DtoType {
 
 export enum ValueType {
     STRING = "string",
-    NUMBER = "number",
+    INTEGER = "integer",
+    FLOAT = "float",
     DATE = "date",
+    DATETIME = "datetime",
+    BOOLEAN = "boolean"
 }
 
 export enum AggregateType {

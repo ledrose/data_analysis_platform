@@ -43,7 +43,7 @@ export class DatasetTableService {
                     column: c.name
                 }],
                 isSimple: true,
-                type: this.datasetFieldService.convertToDatasetFieldType(c.data_type),
+                type: this.datasetFieldService.predictValueType(c.data_type),
                 aggregateType: AggregateType.NONE
             }
         });

@@ -14,11 +14,23 @@ export class DatasetFieldService {
         private readonly datasetFieldRepository: Repository<DatasetField>,
         private readonly sourceService: SourceService,
     ) {}
-    convertToDatasetFieldType(sourceFieldType: string): ValueType {
-        // if (sourceFieldType in []) {
-        //     return ValueType.STRING
-        // }
-        return ValueType.STRING
+    //Really stupid solution but user can change this prediction. Alternative solution (still stupid) can be reading value from database and guessing on it buuuttt I do not want to do that.
+    //Although the order of return types should be different so that it falls back onto more general types.
+    predictValueType(sourceFieldType: string): ValueType {
+        const lowerDbType = sourceFieldType.toLowerCase();
+        console.log(lowerDbType);
+        if (lowerDbType.includes("int") || lowerDbType.includes("serial") || lowerDbType.includes("number")) {
+            return ValueType.INTEGER;
+        } else if (lowerDbType.includes("float") || lowerDbType.includes("double") || lowerDbType.includes("num") || lowerDbType.includes("decimal")) {
+            return ValueType.FLOAT;
+        } else if ((lowerDbType.includes("date") && lowerDbType.includes("time")) || lowerDbType.includes("timestamp")) {
+            return ValueType.DATETIME;
+        } else if (lowerDbType.includes("date")) {
+            return ValueType.DATE;
+        } else if (lowerDbType.includes("bool") || lowerDbType.includes("bit") || lowerDbType.includes("flag")) {
+            return ValueType.BOOLEAN;
+        }
+        return ValueType.STRING;
     }
 
     async addFields(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {

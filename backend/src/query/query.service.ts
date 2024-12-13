@@ -42,10 +42,14 @@ export class QueryService {
                 // sourceTables: true
             }            
         });
+
         const knex = await this.connectionsService.getConnection(datasetInfo.connection.id,username);
+        try {
+            console.log(await knex("employee").columnInfo());
+        } catch {}
         const requiredTables = [...new Set(datasetInfo.fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
         let knexBuilder = knex.queryBuilder();
-        const queryFields = datasetInfo.fields.forEach((field) => {
+        datasetInfo.fields.forEach((field) => {
             if (field.isSimple) {
                 const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} as ${field.name}`;   
                 knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
