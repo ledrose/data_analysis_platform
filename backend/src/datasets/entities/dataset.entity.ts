@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, PrimaryGen
 import { DatasetField } from "./dataset-field.entity";
 import { DatasetJoin } from "./dataset-join.entity";
 import { SourceTable } from "src/source/entities/source-table.entity";
+import { Chart } from "src/charts/entities/chart.entity";
 
 @Entity()
 export class Dataset {
@@ -33,4 +34,7 @@ export class Dataset {
 
     @Column({nullable: true})
     formula?: string
+
+    @OneToMany(() => Chart, (chart) => chart.dataset)
+    charts: Chart[]
 }

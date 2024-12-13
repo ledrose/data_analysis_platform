@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { QueryModule } from './query/query.module';
 import { SourceModule } from './source/source.module';
+import { ChartsModule } from './charts/charts.module';
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ import { SourceModule } from './source/source.module';
   //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
   //   renderPath: "/*"
   // }),
-  ConnectionsModule, DatasetsModule, AuthModule, QueryModule, SourceModule],
+  ConnectionsModule, DatasetsModule, AuthModule, QueryModule, SourceModule, ChartsModule],
   controllers: [AppController],
   providers: [AppService],
 })
