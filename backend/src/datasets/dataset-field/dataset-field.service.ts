@@ -33,6 +33,15 @@ export class DatasetFieldService {
         return ValueType.STRING;
     }
 
+    async findFields(datasetId: string, fields: string[]) {
+        const res = await this.datasetFieldRepository.find({where: {datasetId, name: In(fields)}});
+        const notFound = fields.filter((toAddField) => !res.map((field) => field.name).includes(toAddField)); 
+        if (notFound.length != 0) {
+            throw new BadRequestException(`Fields with the names [${notFound}] not found`);
+        }
+        return res;
+    }
+
     async addFields(datasetId: string, username: string, fieldsDto: AddFieldDto[]) {
         
         const test = await this.datasetFieldRepository.find({where: {datasetId, name: In(fieldsDto.map((field) => field.name))}});
