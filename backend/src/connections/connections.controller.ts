@@ -1,9 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ConnectionsService } from './connections.service';
 import { ConnectionDto } from './dto/connection.dto';
-import {knex} from "knex";
-import SchemaInspector from 'knex-schema-inspector';
-import { table } from 'console';
 import { ConnectionMetadataService } from './connections.metadata.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Auth } from 'src/auth/auth.decorator';

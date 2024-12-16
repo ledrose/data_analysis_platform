@@ -12,6 +12,12 @@ export class AuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: () => void) {
     const token = this.extractTokenFromHeader(req);
+    if (this.configService.get<string>('IGNORE_AUTH')) {
+      req["user"] = "regroe";
+      next();
+      return;
+    }
+
     if (!token) {
       next();
       return;
