@@ -84,6 +84,7 @@ export class QueryService {
         const yError = yAxisFields.filter((axis) => axis.aggregateType == AggregateType.NONE);
 
         //TODO check for complex queries being aggregate 
+        //TODO move this check to requests for adding axes
         if (xError.length > 0) {
             throw new BadRequestException(`X axis field ${xError.map((field) => field.name)} is aggregateable which is not supported`);
         }
@@ -177,8 +178,8 @@ export class QueryService {
             "left": (a,b,c) => knexBuilder.leftJoin(a,b,c),
             "right": (a,b,c) => knexBuilder.rightJoin(a,b,c),
         }
-
     }
+    
 
     // async SqlDatasetQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
     //     const res = await this.buildChartQuery(queryDto, datasetId, paginationDto, username);

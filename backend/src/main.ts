@@ -14,6 +14,11 @@ async function bootstrap() {
       enableImplicitConversion: true
     }
   }));
+  app.enableCors({
+    origin: 'http://127.0.0.1:3001',
+    credentials: true,
+
+  })
 
   //TODO describe all api
   const config = new DocumentBuilder()
