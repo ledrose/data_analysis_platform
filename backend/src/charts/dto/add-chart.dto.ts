@@ -5,5 +5,8 @@ export class AddChartDto {
     dataset_id: string;
 
     @IsString()
+    description: string;
+
+    @IsString()
     name: string;
 }

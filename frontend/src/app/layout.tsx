@@ -17,10 +17,6 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-// export const metadata: Metadata = {
-//   title: "Ledrose's data anylysis tool",
-//   description: "Created in half a month by idiot",
-// };
 
 export default function RootLayout({
   children,
@@ -32,7 +28,7 @@ export default function RootLayout({
       <body>
         <div className="flex flex-col h-screen">
         <Header />
-        <main className="flex-1 p-6 flex flex-col overflow-hidden">
+        <main className="flex-1 p-6 flex flex-col">
           {children}
         </main>
         </div>

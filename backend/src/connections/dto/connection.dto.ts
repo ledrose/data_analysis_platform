@@ -10,6 +10,9 @@ export class ConnectionDto {
     type: ConnectionType
 
     @IsString()
+    description: string
+
+    @IsString()
     host: string
 
     @IsNumber()

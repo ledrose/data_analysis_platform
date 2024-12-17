@@ -31,8 +31,19 @@ export class ChartsService {
         return await this.chartRepository.save(chart);
     }
 
-    async getCharts(datasetId: string) {
+    async getChartsByDataset(datasetId: string) {
         return await this.chartRepository.find({where: {datasetId}});
+    }
+
+    async getCharts(username: string) {
+        return await this.chartRepository.find(
+            {where: {dataset: {connection: {user: {username}}}},
+            relations: {
+                dataset: true
+            }
+        
+        }
+        );
     }
 
     async getChart(chartId: string, username: string) {

@@ -16,6 +16,9 @@ export class Connection {
     @Column()
     name: string
 
+    @Column()
+    description: string
+
     @Column({
         type: "enum",
         enum: ConnectionType

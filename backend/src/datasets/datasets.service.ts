@@ -27,6 +27,8 @@ export class DatasetsService {
                     }
                 },
                 relations: {
+                    fields: true,
+                    joins: true,
                     connection: {
                         user: true
                     }
@@ -52,7 +54,11 @@ export class DatasetsService {
     }
 
     async getAllDatasets(user: string) {
-        return await this.datasetRepository.find({where: {connection: {user: {username: user}}}});
+        return await this.datasetRepository.find({
+            relations: {
+              connection: true  
+            },
+            where: {connection: {user: {username: user}}}});
     }
 
     async getDatasetNoCheck(id: string) {

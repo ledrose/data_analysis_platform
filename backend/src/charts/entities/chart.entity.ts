@@ -17,6 +17,9 @@ export class Chart {
     @Column()
     name: string;
 
+    @Column()
+    description: string
+
     @ManyToOne(() => Dataset, (dataset) => dataset.charts)
     @JoinColumn({name: 'datasetId'})
     dataset: Dataset

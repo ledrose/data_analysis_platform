@@ -10,9 +10,9 @@ import { useEffect, useState } from "react";
 
 
 export default function DatasetPage() {
-    const {isLoading,data,err,sendRequest:login_request} = useLoginApi();
+    const {isLoading,data,err,sendRequest:loginRequest} = useLoginApi();
     useEffect(() => {
-        login_request({username:"regroe",password:"ledrose"});
+        loginRequest({username:"regroe",password:"ledrose"});
     },[])
     return (
         <>
