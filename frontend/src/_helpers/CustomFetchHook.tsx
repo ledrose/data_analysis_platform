@@ -1,3 +1,5 @@
+import { useErrorStore } from "@/_store/store";
+import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 
@@ -13,14 +15,6 @@ function fetchState<R>(isLoading: boolean,data: R | null,err: string | null) {
 }
 
 
-// export type ApiEndpoint<T> = {
-//     responseType: T,
-//     function: (...args: any) => Promise<Response>
-// }
-
-//isLoading,data,error
-
-
 export default function useCustomFetch<R,T extends (...args: any) => Promise<Response>>(
     promise : T,onData=(json: JSON)=>{},onErr=(err: string)=>{}
 ) : {
@@ -33,16 +27,25 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
     // const navigate = useNavigate();
     // const query =  useSelector((state) => state.user);
     const [respState,setRespState] = useState(fetchState<R>(false,null,null));
-    // const dispatch = useDispatch();
+    // const setError = useErrorStore(state => state.setError);
+    const {toast} = useToast();
+     // const dispatch = useDispatch();
     const errAction = (err: string) => {
         setRespState(fetchState<R>(false,null,err));
         onErr(err);
-        //TODO set global error
-        // dispatch(setError(err.toString()));
+        toast({
+           variant: "destructive",
+           duration: 1000,
+           title: "Error",
+           description: err.toString() 
+        });
+        // setError(err);
+
     }
     const sendRequest = (...args: PromiseArgs) => {
         setRespState(fetchState<R>(true,null,null));
         promise(...args).then((response) => {
+            console.log(response);
             if (response.ok) {
                 response.text().then((text)=> {
                     const data = text && JSON.parse(text);
@@ -66,6 +69,7 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
                 },(e)=> errAction(response.statusText))
             }
         },(err) => {
+            console.log(err);
             errAction(err);
         });
     };
