@@ -7,12 +7,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { UpdateConnectionDialog } from "./connections/add-connection-dialog"
+import { UpdateConnectionDialog } from "../dialogs/connections/update-connection-dialog"
 import { Connection } from "@backend/connections/entities/connection.entity"
 import { UpdateConnectionDto } from "@backend/connections/dto/update-connection.dto"
-import { DialogTrigger } from "../ui/dialog"
+import { DialogTrigger } from "../../ui/dialog"
 import { useGetConnectionsApi } from "@/api/connections"
 import { useState } from "react"
+import { set } from "react-hook-form"
+import { AddDatasetDialog } from "../dialogs/datasets/add-dataset-dialog"
+import { useGetDatasetsApi } from "@/api/datasets"
 
 interface ItemCardProps {
   title: string,
@@ -66,22 +69,25 @@ export function ItemCard({ title, description, type, markers = [], onEdit, onCre
 
 interface ConnectionCardProps {
   connection: Connection,
-  onEdit: () => void,
-  onCreateNext: () => void,
+  // onEdit: () => void,
+  // onCreateNext: () => void,
   onDelete: () => void,
-  getConnections: ReturnType<typeof useGetConnectionsApi>['sendRequest']
+  getConnections: ReturnType<typeof useGetConnectionsApi>['sendRequest'],
+  getDatasets: ReturnType<typeof useGetDatasetsApi>['sendRequest']
 }
 
-export function ConnectionItemCard({connection, getConnections, onEdit, onCreateNext,onDelete}: ConnectionCardProps) {
-  const [open,setOpen] = useState(false);
-  console.log(open);
+
+export function ConnectionItemCard({connection, getConnections, getDatasets, onDelete}: ConnectionCardProps) {
+	const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState(false);
+	const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+	const [isNextDialogOpen, setIsNextDialogOpen] = useState(false);
+
   const markers = [connection.type,...(connection.schema ? [connection.schema] : [])];
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{connection.name}</CardTitle>
-        <UpdateConnectionDialog connectionId={connection.id} connectionInfo={connection} getConnections={getConnections}>
-          <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
+          <DropdownMenu modal={false} open={isDropdownMenuOpen} onOpenChange={setIsDropdownMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
                 <MoreHorizontal className="h-4 w-4" />
@@ -89,14 +95,19 @@ export function ConnectionItemCard({connection, getConnections, onEdit, onCreate
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DialogTrigger asChild>
-                <DropdownMenuItem onClick={onEdit}>Edit connection</DropdownMenuItem>
-              </DialogTrigger>  
+              <DropdownMenuItem onClick={() => {
+                setIsUpdateDialogOpen(true)
+                setIsDropdownMenuOpen(false)
+              }}>Edit connection</DropdownMenuItem>
               <DropdownMenuItem onClick={onDelete}>Delete connection</DropdownMenuItem>
-              <DropdownMenuItem onClick={onCreateNext}>Create dataset</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                setIsNextDialogOpen(true)
+                setIsDropdownMenuOpen(false)
+              }}>Create dataset</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </UpdateConnectionDialog>
+        <UpdateConnectionDialog useOpenHook={[isUpdateDialogOpen, setIsUpdateDialogOpen]} connectionId={connection.id} connectionInfo={connection} getConnections={getConnections} />
+        <AddDatasetDialog useOpenHook={[isNextDialogOpen, setIsNextDialogOpen]} getDatasets={getDatasets} defaultConnection={connection}/>
       </CardHeader>
       <CardContent>
         <CardDescription>{connection.description}</CardDescription>

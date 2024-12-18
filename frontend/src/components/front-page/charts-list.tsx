@@ -1,9 +1,9 @@
 import { useGetChartsApi } from "@/api/charts";
-import { ItemCard } from "./item-card"
+import { ItemCard } from "./cards/connection-item-card"
 import { Button } from "@/components/ui/button"
 import { Plus } from 'lucide-react'
 import { useEffect } from "react";
-import { AddConnectionDialog } from "./connections/add-connection-dialog";
+import { AddConnectionDialog } from "./dialogs/connections/add-connection-dialog";
 
 const mockCharts = [
   { id: 1, title: "Monthly Revenue", description: "Bar chart showing revenue by month" },

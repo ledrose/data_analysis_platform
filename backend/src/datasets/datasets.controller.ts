@@ -4,6 +4,7 @@ import { AddDatasetDto } from './dto/add-dataset.dto';
 import { Auth } from 'src/auth/auth.decorator';
 import { DatasetsGuard } from './datasets.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { UpdateConnectionDto } from 'src/connections/dto/update-connection.dto';
 
 @Controller('datasets')
 export class DatasetsController {
@@ -26,7 +27,25 @@ export class DatasetsController {
     @UseGuards(AuthGuard)
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
-    async create(@Body() dataset_dto: AddDatasetDto, @Auth() user: string) {
-        return this.datasetsService.create(dataset_dto,user);
+    async create(@Body() datasetDto: AddDatasetDto, @Auth() user: string) {
+        return this.datasetsService.create(datasetDto,user);
     }
+
+    @UseGuards(DatasetsGuard)
+    @Post('update/:dataset_id')
+    @HttpCode(HttpStatus.OK)
+    async update(@Param('dataset_id') datasetId: string, @Body() datasetDto: UpdateConnectionDto, @Body() dataset_dto: AddDatasetDto, @Auth() user: string) {
+        return this.datasetsService.update(datasetId, datasetDto,user);
+    }
+
+    @UseGuards(DatasetsGuard)
+    @Post('delete/:dataset_id')
+    @HttpCode(HttpStatus.OK)
+    async delete(@Param('dataset_id') datasetId: string, @Auth() user: string) {
+        return this.datasetsService.delete(datasetId);
+    }
+
+
+
+    
 }

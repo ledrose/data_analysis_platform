@@ -1,26 +1,19 @@
 import { useCreateConnectionApi, useDeleteConnectionApi, useGetConnectionsApi, useUpdateConnectionApi } from "@/api/connections"
-import { ConnectionItemCard, ItemCard } from "./item-card"
+import { ConnectionItemCard, ItemCard } from "./cards/connection-item-card"
 import { Button } from "@/components/ui/button"
 import { Plus } from 'lucide-react'
 import { useEffect } from "react"
-import { AddConnectionDialog } from "./connections/add-connection-dialog"
+import { AddConnectionDialog } from "./dialogs/connections/add-connection-dialog"
+import { useGetDatasetsApi } from "@/api/datasets"
 
 export function ConnectionsList() {
     const {data,isLoading,sendRequest:getConnections} = useGetConnectionsApi();
-    const useCreateConnection = useCreateConnectionApi();
-    const {sendRequest: createConnection} = useCreateConnection;
-
-    const {} = useUpdateConnectionApi();
+    const {sendRequest:getDatasets} = useGetDatasetsApi();
     const {sendRequest:deleteConnection} = useDeleteConnectionApi();
     useEffect(() => {
         getConnections()();
     },[])
 
-
-
-    const handleEditConnection = (id: string) => {
-        console.log(`Edit connection ${id}`)
-    }
 
     const handleDeleteConnection = (id: string) => {
         console.log(`Delete connection ${id}`)
@@ -30,11 +23,6 @@ export function ConnectionsList() {
             }
         })(id);
     }
-
-    const handleCreateDataset = (connectionId: string,) => {
-        console.log(`Create dataset from connection ${connectionId}`)
-    }
-    
 
     return (
         <div>
@@ -48,21 +36,10 @@ export function ConnectionsList() {
                 <ConnectionItemCard 
                     key={connection.id}
                     connection={connection}
-                    onEdit={() => handleEditConnection(connection.id)}
-                    onCreateNext={() => handleCreateDataset(connection.id)}
                     onDelete={() => handleDeleteConnection(connection.id)}
+                    getDatasets={getDatasets}
                     getConnections={getConnections}
                 />
-                // <ItemCard
-                // key={connection.id}
-                // title={connection.name}
-                // description={connection.description}
-                // type="connection"
-                // markers={[connection.type,...(connection.schema ? [connection.schema] : [])]}
-                // onEdit={() => handleEditConnection(connection.id)}
-                // onCreateNext={() => handleCreateDataset(connection.id)}
-                // onDelete={() => handleDeleteConnection(connection.id)}
-                // />
             ))}
             </div>
         </div>

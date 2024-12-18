@@ -4,16 +4,33 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AddDatasetDto } from './dto/add-dataset.dto';
 import { Connection } from 'src/connections/entities/connection.entity';
+import { UpdateConnectionDto } from 'src/connections/dto/update-connection.dto';
 
 @Injectable()
-export class DatasetsService {
-    
+export class DatasetsService {    
     constructor(
         @InjectRepository(Dataset)
         private readonly datasetRepository: Repository<Dataset>,
         @InjectRepository(Connection)
         private readonly connectionRepository: Repository<Connection>
     ) {}
+
+
+    async delete(datasetId: string) {
+        const dataset = await this.datasetRepository.findOne({where: {id: datasetId}});
+        if (!dataset) {
+            throw new NotFoundException("Dataset not found");
+        }
+        return await this.datasetRepository.remove(dataset);
+    }
+
+    async update(datasetId: string, datasetDto: UpdateConnectionDto, user: string) {
+        const dataset = await this.datasetRepository.preload({
+            id: datasetId,
+            ...datasetDto
+        })
+        return await this.datasetRepository.save(dataset);
+    }
 
     async get_dataset(id: string,username: string) {
         const result =await this.datasetRepository.findOne(
@@ -33,23 +50,8 @@ export class DatasetsService {
                         user: true
                     }
                 }
-                // join: {
-                //     alias: 'dataset',
-                //     leftJoin: {
-                //         user: 'connection.user',
-                //     },
-                //     leftJoinAndSelect: {
-                //         connection: 'dataset.connection'
-                //     }
-                // }
             }
         )
-            // .createQueryBuilder('dataset')
-            // .leftJoin('dataset.connection', 'connection')
-            // .leftJoin('connection.user', 'user')
-            // .where('user.username = :username', { username })
-            // .where('dataset.id = :id', { id })
-            // .getOne();
         return result;
     }
 
@@ -88,11 +90,11 @@ export class DatasetsService {
             throw new ConflictException("Dataset with this name already exists");
         }
         // console.log(dataset_dto);
-        const connection = await this.connectionRepository.findOne({where: {id: dataset_dto.connection_id}});
+        const connection = await this.connectionRepository.findOne({where: {id: dataset_dto.connectionId}});
         if (!connection) {
             throw new NotFoundException("Connection not found");
         }
-        const dataset = await this.datasetRepository.create({...dataset_dto, connectionId: dataset_dto.connection_id});
+        const dataset = await this.datasetRepository.create({...dataset_dto, connectionId: dataset_dto.connectionId});
         return this.datasetRepository.save(dataset);
     }
 }

@@ -1,8 +1,11 @@
-import { useGetDatasets } from "@/api/datasets"
-import { ItemCard } from "./item-card"
+import { useGetDatasetsApi } from "@/api/datasets"
+import { ItemCard } from "./cards/connection-item-card"
 import { Button } from "@/components/ui/button"
 import { Plus } from 'lucide-react'
-import { use, useEffect } from "react"
+import { use, useEffect, useState } from "react"
+import { DatasetItemCard } from "./cards/dataset-item-card"
+import { AddDatasetDialog } from "./dialogs/datasets/add-dataset-dialog"
+import { useGetConnectionsApi } from "@/api/connections"
 
 const mockDatasets = [
   { id: 1, title: "Sales Data 2023", description: "Annual sales data for analysis" },
@@ -13,9 +16,14 @@ const mockDatasets = [
 ]
 
 export function DatasetsList() {
-    const {data,isLoading,sendRequest} = useGetDatasets();
+    const {data,isLoading,sendRequest:getDatasets} = useGetDatasetsApi();
+    const {data: connections,sendRequest: getConnections} = useGetConnectionsApi();
+    const useOpenHook = useState(false);
     useEffect(() => {
-        sendRequest()();
+        getConnections()();
+    },[])
+    useEffect(() => {
+        getDatasets()();
     },[])
     const handleAddDataset = () => {
         console.log("Add new dataset")
@@ -37,19 +45,18 @@ export function DatasetsList() {
         <div>
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Datasets</h2>
-            <Button onClick={handleAddDataset}>
-            <Plus className="mr-2 h-4 w-4" /> Add Dataset
+            <Button variant="default" onClick={() => useOpenHook[1](true)}>
+                <Plus className="mr-2 h-4 w-4" /> Add Dataset
             </Button>
+            <AddDatasetDialog useOpenHook={useOpenHook} getDatasets={getDatasets}/>
         </div>
         <div className="h-[150px] overflow-y-auto pr-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {data && data.map((dataset) => (
-                <ItemCard
+                <DatasetItemCard
                 key={dataset.id}
-                title={dataset.name}
-                description={dataset.description}
-                type="dataset"
-                markers={["Based on: "+dataset.connection.name]}
+                dataset={dataset}
+                getDatasets={getDatasets}
                 onEdit={() => handleEditDataset(dataset.id)}
                 onCreateNext={() => handleCreateChart(dataset.id)}
                 onDelete={() => handleDeleteDataset(dataset.id)}

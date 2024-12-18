@@ -8,7 +8,7 @@ export class AddDatasetDto {
     description: string;
 
     @IsString()
-    connection_id: string;
+    connectionId: string;
     
     // fields: DatasetFieldDto[];
 }
