@@ -30,6 +30,10 @@ export function ChartsList() {
         console.log(`Create next item based on chart ${chartId}`)
     }
 
+    const handelDeleteChart = (chartId: string) => {
+        console.log(`Delete chart ${chartId}`)
+    }
+
     return (
         <div>
         <div className="flex justify-between items-center mb-4">
@@ -49,6 +53,7 @@ export function ChartsList() {
                 markers={["Based on: "+chart.dataset.name]}
                 onEdit={() => handleEditChart(chart.id)}
                 onCreateNext={() => handleCreateNext(chart.id)}
+                onDelete={() => handelDeleteChart(chart.id)}
                 />
             ))}
             </div>

@@ -5,6 +5,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Connection } from './entities/connection.entity';
 import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/auth/entities/user.entity';
+import { UpdateConnectionDto } from './dto/update-connection.dto';
 
 interface ConnectionInfo {
     knex: Knex,
@@ -97,7 +98,35 @@ export class ConnectionsService implements OnModuleDestroy{
     }
 
     async getOrCreateConnectionId(config: ConnectionDto, username: string): Promise<string> {
+        const namedConection = await this.connectionRepository.findOne({where: {name: config.name, user: {username}}});
+        if (namedConection) {
+            throw new BadRequestException("Conection with that name already exists");
+        }
         return (await this.getConnectionFromDbByConfig(config,username)).id;
+    }
+
+    async updateConnection(connectionId: string, connectionDto: UpdateConnectionDto, username: string) {
+        if (!this.getConnection(connectionId, username)) {
+            throw new ForbiddenException("You don't have access to this connection");
+        }
+        this.closeConnection(connectionId);
+        const connection = await this.connectionRepository.preload({
+            id: connectionId,
+            ...connectionDto
+        })
+        await this.testConnection(this.createConnection(connection));
+        await this.connectionRepository.save(connection);
+        return connection;
+    }
+
+    async deleteConnection(connectionId: string, username: string) {
+        const connection = await this.connectionRepository.findOne({where: {id: connectionId, user: {username}}});
+        if (!connection) {
+            throw new ForbiddenException("You don't have access to this connection");
+        }
+        this.closeConnection(connectionId);
+        await this.connectionRepository.remove(connection);
+        return connection;
     }
 
     private async testConnection(knexInstance: Knex) {

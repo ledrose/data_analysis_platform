@@ -1,12 +1,13 @@
 import { useErrorStore } from "@/_store/store";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { json } from "stream/consumers";
 import useSWR from "swr";
 
 
 
 
-function fetchState<R>(isLoading: boolean,data: R | null,err: string | null) {
+function fetchState<R>(isLoading: boolean,data: R | null,err: ApiError | null) {
     return {
         isLoading:isLoading,
         data:data,
@@ -14,26 +15,10 @@ function fetchState<R>(isLoading: boolean,data: R | null,err: string | null) {
     }
 }
 
-
-class sendRequestBuilder {
-    sendRequest: (...args: any) => void;
-    onError: ((...args: any) => void) | undefined;
-    onData: ((...args: any) => void) | undefined;
-    constructor(
-        sendRequest: (...args: any) => void
-    ) {
-        this.sendRequest = sendRequest
-    }
-
-
-
-    execute(...args: any) {
-        return this.sendRequest(...args);
-    }
-
-    private buildSendRequest() {
-    
-    }
+export interface ApiError {
+    message?: string,
+    error: string,
+    statusCode: number
 }
 
 
@@ -42,8 +27,8 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
 ) : {
     isLoading: boolean,
     data: R | null,
-    err: string | null,
-    sendRequest: (onErr?: (...args: any) => void, onData?: (...args: any) => void) => (...args: Parameters<T>) => void
+    err: ApiError | null,
+    sendRequest: (handlers?: {onErr?: (err: ApiError) => void, onData?: (data: R) => void}) => (...args: Parameters<T>) => void
 } {
     type PromiseArgs = Parameters<T>;
     // const navigate = useNavigate();
@@ -52,49 +37,57 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
     // const setError = useErrorStore(state => state.setError);
     const {toast} = useToast();
      // const dispatch = useDispatch();
-    const errAction = (err: string) => {
+    const errAction = (err: ApiError) => {
         setRespState(fetchState<R>(false,null,err));
         toast({
            variant: "destructive",
            duration: 1000,
            title: "Error",
-           description: err.toString() 
+           description: err?.message && err.message 
         });
-        // setError(err);
-
     }
 
-
-    const sendRequest = (onErr?: (...args: any) => void, onData?: (...args: any) => void) => {
+    const sendRequest = (handlers? : {onErr?: (err: ApiError) => void, onData?: (data: R) => void}) => {
         return (...args: PromiseArgs)  => {
             setRespState(fetchState<R>(true,null,null));
             promise(...args).then((response) => {
                 console.log(response);
                 if (response.ok) {
-                    response.text().then((text)=> {
-                        const data = text && JSON.parse(text);
-                        if (data === "") {
-                            const err = (data && data.message) || response.statusText;
-                            onErr?.(data);
-                            errAction(err);
-                        } else {
-                            onData?.(data);
-                            setRespState(fetchState<R>(false,data,null));
-                            // console.log(data);
-                        }
-                    });
+                    response.json().then((json) => {
+                        handlers?.onData?.(json as R);
+                        setRespState(fetchState<R>(false,json as R,null));
+
+                    })
+                    // response.text().then((text)=> {
+                    //     const data = text && JSON.parse(text);
+                    //     if (data === "") {
+                    //         const err = (data && data.message) || response.statusText;
+                    //         handlers?.onErr?.(data);
+                    //         errAction(err);
+                    //     } else {
+                    //         handlers?.onData?.(data);
+                    //         setRespState(fetchState<R>(false,data,null));
+                    //         // console.log(data);
+                    //     }
+                    // });
                     // console.log("Ok: "+resp);
                 } else if (response.status == 401) {
                     // navigate("/login")
-                    onErr?.(response.statusText);
-                    errAction(response.statusText)
+                    response.json().then((json) => {
+                        handlers?.onErr?.(json as ApiError);
+                        errAction(json as ApiError);
+                    }).catch((err) => {
+                        console.log(err);
+                    })
     
                 }
                 else {
-                    response.text().then((text) => {
-                        onErr?.(response.statusText);
-                        errAction(text);
-                    },(e)=> errAction(response.statusText))
+                    response.json().then((json) => {
+                        handlers?.onErr?.(json as ApiError);
+                        errAction(json as ApiError);
+                    }).catch((err) => {
+                        console.log(err);
+                    })
                 }
             },(err) => {
                 console.log(err);

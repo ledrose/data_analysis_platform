@@ -1,6 +1,6 @@
 import { User } from "src/auth/entities/user.entity";
 import { Dataset } from "../../datasets/entities/dataset.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTable } from "src/source/entities/source-table.entity";
 
 export enum ConnectionType {

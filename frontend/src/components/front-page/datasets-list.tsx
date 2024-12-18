@@ -25,6 +25,10 @@ export function DatasetsList() {
         console.log(`Edit dataset ${id}`)
     }
 
+    const handleDeleteDataset = (id: string) => {
+        console.log(`Delete dataset ${id}`)
+    }
+
     const handleCreateChart = (datasetId: string) => {
         console.log(`Create chart from dataset ${datasetId}`)
     }
@@ -48,6 +52,7 @@ export function DatasetsList() {
                 markers={["Based on: "+dataset.connection.name]}
                 onEdit={() => handleEditDataset(dataset.id)}
                 onCreateNext={() => handleCreateChart(dataset.id)}
+                onDelete={() => handleDeleteDataset(dataset.id)}
                 />
             ))}
             </div>
