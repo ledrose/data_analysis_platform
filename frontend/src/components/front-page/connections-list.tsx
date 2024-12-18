@@ -3,11 +3,12 @@ import { ItemCard } from "./item-card"
 import { Button } from "@/components/ui/button"
 import { Plus } from 'lucide-react'
 import { useEffect } from "react"
+import { AddConnectionDialog } from "./connections/add-connection-dialog"
 
 export function ConnectionsList() {
     const {data,isLoading,sendRequest} = useGetConnectionsApi();
     useEffect(() => {
-        sendRequest();
+        sendRequest()();
     },[])
     const handleAddConnection = () => {
         console.log("Add new connection")
@@ -25,9 +26,7 @@ export function ConnectionsList() {
         <div>
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Connections</h2>
-            <Button onClick={handleAddConnection}>
-                <Plus className="mr-2 h-4 w-4" /> Add Connection
-            </Button>
+            <AddConnectionDialog />
         </div>
         <div className="h-[160px] overflow-y-auto pr-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

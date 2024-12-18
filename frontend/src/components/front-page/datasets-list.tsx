@@ -15,7 +15,7 @@ const mockDatasets = [
 export function DatasetsList() {
     const {data,isLoading,sendRequest} = useGetDatasets();
     useEffect(() => {
-        sendRequest();
+        sendRequest()();
     },[])
     const handleAddDataset = () => {
         console.log("Add new dataset")
