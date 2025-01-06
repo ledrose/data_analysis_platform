@@ -1,17 +1,15 @@
 'use client'
-
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from "@/components/ui/table"
-  import { ScrollArea } from "@/components/ui/scroll-area"
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {Table,TableBody,TableCell,TableHead,TableHeader,TableRow } from "@/components/ui/table"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useGetDatasetFieldsApi } from "@/api/datasets";
+import { useEffect } from "react";
   
-  const DatasetFieldsTable = () => {
+export default function DatasetFieldsTable({datasetId}: {datasetId: string}) {
+    const {data: datasetFields,sendRequest:getDatasetFields} = useGetDatasetFieldsApi();
+    useEffect(() => {
+      getDatasetFields()(datasetId);
+    },[])
     const fields = [
       { id: 1, name: "User ID", sourceField: "users.id", type: "number", aggregation: "none" },
       { id: 2, name: "Username", sourceField: "users.username", type: "string", aggregation: "none" },
@@ -35,11 +33,11 @@ import {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {fields.map((field) => (
+            {datasetFields && datasetFields.map((field) => (
               <TableRow key={field.id}>
                 <TableCell>{field.id}</TableCell>
                 <TableCell>{field.name}</TableCell>
-                <TableCell>{field.sourceField}</TableCell>
+                <TableCell>{field.sourceFields[0].name}</TableCell>
                 <TableCell>
                   <Select defaultValue={field.type}>
                     <SelectTrigger className="w-[100px]">
@@ -53,7 +51,7 @@ import {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  <Select defaultValue={field.aggregation}>
+                  <Select defaultValue={field.aggregateType}>
                     <SelectTrigger className="w-[100px]">
                       <SelectValue placeholder="Select aggregation" />
                     </SelectTrigger>
@@ -74,7 +72,4 @@ import {
       </ScrollArea>
     )
   }
-  
-  export default DatasetFieldsTable
-  
   

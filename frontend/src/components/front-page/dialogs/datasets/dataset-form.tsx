@@ -5,7 +5,7 @@ import {z} from "zod"
 import { Textarea } from "@/components/ui/textarea";
 import React, { useEffect } from "react";
 import { Select, SelectContent,SelectTrigger, SelectItem, SelectValue } from "@/components/ui/select";
-import { useGetConnectionsApi } from "@/api/connections";
+import { useGetConnectionMetadataApi, useGetConnectionsApi } from "@/api/connections";
 
 export type FormValues = z.infer<typeof formSchema>
 

@@ -1,19 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { UpdateConnectionDialog } from "../dialogs/connections/update-connection-dialog"
 import { Connection } from "@backend/connections/entities/connection.entity"
-import { UpdateConnectionDto } from "@backend/connections/dto/update-connection.dto"
-import { DialogTrigger } from "../../ui/dialog"
 import { useGetConnectionsApi } from "@/api/connections"
 import { useState } from "react"
-import { set } from "react-hook-form"
 import { AddDatasetDialog } from "../dialogs/datasets/add-dataset-dialog"
 import { useGetDatasetsApi } from "@/api/datasets"
 

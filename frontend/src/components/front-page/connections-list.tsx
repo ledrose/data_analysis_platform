@@ -1,7 +1,5 @@
 import { useCreateConnectionApi, useDeleteConnectionApi, useGetConnectionsApi, useUpdateConnectionApi } from "@/api/connections"
 import { ConnectionItemCard, ItemCard } from "./cards/connection-item-card"
-import { Button } from "@/components/ui/button"
-import { Plus } from 'lucide-react'
 import { useEffect } from "react"
 import { AddConnectionDialog } from "./dialogs/connections/add-connection-dialog"
 import { useGetDatasetsApi } from "@/api/datasets"

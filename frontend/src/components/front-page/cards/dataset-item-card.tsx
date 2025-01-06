@@ -7,6 +7,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { UpdateConnectionDialog } from "../dialogs/connections/update-connection-dialog";
 import { DialogTrigger } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 
 interface ConnectionCardProps {
@@ -18,6 +19,7 @@ interface ConnectionCardProps {
   }
   
   export function DatasetItemCard({dataset, getDatasets, onEdit, onCreateNext,onDelete}: ConnectionCardProps) {
+    const router = useRouter();
     const [open,setOpen] = useState(false);
     const markers = ["Based on: "+dataset.connection.name];
     return (
@@ -40,13 +42,17 @@ interface ConnectionCardProps {
         </CardHeader>
         <CardContent>
           <CardDescription>{dataset.description}</CardDescription>
-  
-          <div className="mt-2">
-              {markers.map((marker, index) =>
-                      <span key={index} className={`inline-flex items-center rounded-md px-2 py-1 me-2 text-xs font-medium bg-green-100 text-green-700`}>
-                        {marker.charAt(0).toUpperCase() + marker.slice(1)}
-                      </span>
-              )}
+          <div className="flex flex-row justify-between">
+            <div className="mt-2">
+                {markers.map((marker, index) =>
+                        <span key={index} className={`inline-flex items-center rounded-md px-2 py-1 me-2 text-xs font-medium bg-green-100 text-green-700`}>
+                          {marker.charAt(0).toUpperCase() + marker.slice(1)}
+                        </span>
+                )}
+            </div>
+            <Button variant="default" onClick={() => {
+              router.push(`/datasets?id=${dataset.id}`)
+            }}>View</Button>
           </div>
         </CardContent>
       </Card>

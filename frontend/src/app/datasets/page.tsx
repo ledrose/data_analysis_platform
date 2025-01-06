@@ -6,19 +6,31 @@ import ResultsTable from "@/components/datasets/result-table";
 import SearchSidebar from "@/components/datasets/search-sidebar";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetDatasetApi } from "@/api/datasets";
+import { useGetDatasetApi, useGetDatasetFieldsApi } from "@/api/datasets";
 import { send } from "process";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useGetConnectionMetadataApi } from "@/api/connections";
 // import { TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 
 // type EditorMode = 'relations' | 'fields'
 
 export default function DatasetPage() {
-  const datasetId = "b9bd94f7-3288-433c-b719-ec0898c9ad3f";
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const datasetId = searchParams.get('id') as string;
+  if (!datasetId) {
+    router.push('/');
+  }
   const {data,sendRequest} = useGetDatasetApi();
+  const {data:metadata,sendRequest:getMetadata} = useGetConnectionMetadataApi();
   useEffect(() => {
-    sendRequest()(datasetId);
+    sendRequest({
+      onData(data) {
+        getMetadata()(data.connectionId);
+      },
+    })(datasetId);
   },[])
   return (
     <>
@@ -32,12 +44,12 @@ export default function DatasetPage() {
             <TabsContent value="fields">
               <div className="flex-1 overflow-hidden">
                 <h2 className="text-xl font-semibold mb-2">Dataset Fields</h2>
-                <DatasetFieldsTable />
+                <DatasetFieldsTable datasetId={datasetId}/>
               </div>
             </TabsContent>
             <TabsContent value="relations">
               <div className="flex mb-6 overflow-hidden">
-                <SearchSidebar />
+                <SearchSidebar metadata={metadata}/>
                 <div className="flex-1 ml-6">
                   <h2 className="text-xl font-semibold mb-2">Table Relations</h2>
                   <RelationsTable />
