@@ -1,10 +1,11 @@
 export class TableInfoDto {
-    name: string;
+    table: string;
     columns: ColumnInfoDto[];
 }
 
 export class ColumnInfoDto {
-    name: string;
+    table: string;
+    column: string;
     data_type: string;   
 }
 
@@ -13,4 +14,9 @@ export class JoinInfoDto {
     column1: string;
     table2: string;
     column2: string;
+}
+
+export class TableMetadataDto {
+    columns: TableInfoDto[];
+    joins: JoinInfoDto[];
 }

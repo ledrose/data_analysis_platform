@@ -103,7 +103,7 @@ export class DatasetFieldService {
         // throw new Error('Method not implemented.');
     }
     async getFields(datasetId: string) {
-        return await this.datasetFieldRepository.find({where: {datasetId}});
+        return await this.datasetFieldRepository.find({where: {datasetId},relations: {sourceFields: true}});
     }
     async getField(datasetId: string, fieldId: number) {
         return await this.datasetFieldRepository.findOne(

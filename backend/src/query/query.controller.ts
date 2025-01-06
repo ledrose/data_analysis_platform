@@ -11,7 +11,6 @@ export class QueryController {
         private readonly queryService: QueryService
     ) {}
 
-
     @HttpCode(HttpStatus.OK)
     @Get('dataset/:dataset_id/sql')
     async generateQuery(@Query() paginationDto: PaginationDto, @Param('dataset_id') datasetId: string, @Body() queryDto: QueryDatasetDto, @Auth() user: string) {
