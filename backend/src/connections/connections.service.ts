@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { ConnectionDto } from './dto/connection.dto';
 import {Knex, knex} from 'knex';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +16,7 @@ interface ConnectionInfo {
 
 @Injectable()
 export class ConnectionsService implements OnModuleDestroy{
+    private readonly logger = new Logger(ConnectionsService.name);
     constructor(
         @InjectRepository(Connection)
         private readonly connectionRepository: Repository<Connection>,
@@ -31,6 +32,7 @@ export class ConnectionsService implements OnModuleDestroy{
 
     async getConnetionNoChecks(dbId: string): Promise<Knex> {
         if (this.connections.has(dbId)) {
+            this.logger.warn(`Reusing connection:  ${dbId}`);
             const connectionInfo = this.connections.get(dbId);
             this.resetConnectionTimer(dbId);
             connectionInfo.lastUsed = Date.now();
@@ -40,17 +42,26 @@ export class ConnectionsService implements OnModuleDestroy{
         if (!connectionFromDb) {
             throw new NotFoundException("Id of this connection not found");
         }
+        this.logger.warn(`Creating new connection: ${dbId}`);
         const knexInstance = this.createConnection(connectionFromDb);
         await this.testConnection(knexInstance);
+        this.connections.set(dbId, {
+            knex: knexInstance,
+            lastUsed: Date.now(),
+            config: connectionFromDb,
+            timer: this.createConnectionTimer(dbId)
+        })
         return knexInstance;
     }
 
 
     async getConnection(dbId: string, username: string): Promise<Knex> {
         if (this.connections.has(dbId)
-            && this.connections.get(dbId)?.config?.username === username
+            && this.connections.get(dbId)?.config?.user?.username === username
         ) {
+            this.logger.warn(`Reusing connection:  ${dbId}`);
             const connectionInfo = this.connections.get(dbId);
+            // this.logger.warn(`Connection Info: ${JSON.stringify(connectionInfo.config)}`);
             connectionInfo.lastUsed = Date.now();
             this.resetConnectionTimer(dbId);
             try {
@@ -59,7 +70,6 @@ export class ConnectionsService implements OnModuleDestroy{
                 await this.closeConnection(dbId);
                 throw error;
             }
-            console.log("Reusing connection: ", dbId);
             return connectionInfo.knex;
         }
         const connectionFromDb = await this.connectionRepository
@@ -78,6 +88,7 @@ export class ConnectionsService implements OnModuleDestroy{
         if (!connectionFromDb) {
             throw new NotFoundException("Id of this connection not found");
         }
+        this.logger.warn(`Creating new connection: ${dbId}`);
         const knexInstance = this.createConnection(connectionFromDb);
         await this.testConnection(knexInstance);
         this.connections.set(dbId, {
@@ -85,7 +96,7 @@ export class ConnectionsService implements OnModuleDestroy{
             lastUsed: Date.now(),
             config: connectionFromDb,
             timer: this.createConnectionTimer(dbId)
-        })
+        });
         return knexInstance;
     }
 
@@ -176,7 +187,7 @@ export class ConnectionsService implements OnModuleDestroy{
             },
             pool: {
                 min: 0,
-                max: 3
+                max: 20
             },
             ...(connection?.schema && {searchPath: connection.schema})
         });

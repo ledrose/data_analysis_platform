@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { LoggingInterceptor } from './logging.interceptor';
 import { Response, Request } from 'express';
+import { time } from 'console';
 
 @Catch()
 export class GlobalExceptionFilter<T> implements ExceptionFilter {
@@ -21,10 +22,12 @@ export class GlobalExceptionFilter<T> implements ExceptionFilter {
 
     res
       .status(status)
-      .json({
+      .json(exception['response'] && {
+        ...exception['response'],
+        timestamp: new Date().toISOString(),
+        } || {
         statusCode: status,
         timestamp: new Date().toISOString(),
-        error: exception['response']
       });
 
   }

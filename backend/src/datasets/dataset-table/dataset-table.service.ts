@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionMetadataService } from 'src/connections/connections.metadata.service';
 import { DatasetFieldService } from '../dataset-field/dataset-field.service';
 import { AggregateType, ValueType } from '../entities/dataset-field.entity';
+import { Dataset } from '../entities/dataset.entity';
 
 @Injectable()
 export class DatasetTableService {
@@ -15,12 +16,21 @@ export class DatasetTableService {
     constructor(
         @InjectRepository(DatasetJoin)
         private readonly datasetJoinRepository: Repository<DatasetJoin>,
+        // @InjectRepository(Dataset)
+        // private readonly datasetRepository: Repository<Dataset>,
         private readonly sourceService: SourceService,
         private readonly datasetService: DatasetsService,
         private readonly connectionMetadataService: ConnectionMetadataService,
         private readonly datasetFieldService: DatasetFieldService
     ) {}
     
+
+    // async getTables(datasetId: string,username: string) {
+    //     this.datasetRepository.findOne(
+    //         {where: {id: datasetId}}
+    //     );
+    //     throw new Error('Method not implemented.');
+    // }
 
     async addBaseTable(datasetId: string, username: string, addTableDto: AddBaseTableDto) {
         if (await this.sourceService.isSourceTableExists(datasetId)) {
@@ -29,12 +39,6 @@ export class DatasetTableService {
         const res =  await this.sourceService.ensureSourceTableExists(datasetId, addTableDto.name);
         const connectionId = (await this.datasetService.getDatasetNoCheck(datasetId))?.connectionId;
         const columns = await this.connectionMetadataService.getColumnsOfTable(connectionId, res.name);
-        // const columnToInsert = {"table": res.name, "columnInfo": columns.map((c) => {
-        //     return {
-        //         "column": c.name,
-        //         "info": c
-        //     }
-        // })};
         const addFieldDto = columns.map((c) => {
             return {
                 name: c.name,
@@ -48,9 +52,6 @@ export class DatasetTableService {
             }
         });
         this.datasetFieldService.addFields(datasetId, username, addFieldDto);
-        // return await this.sourceService.getOrCreateSourceColumns(datasetId, [columnToInsert]);
-        // .ensureSourceFieldsExist(datasetId, new Map([[res.name, columns.map((c) => c.name)]]));
-        // return res;
     }
 
     async addJoinedTable(datasetId: string, username: string, addTableDto: addJoinedTableDto) {

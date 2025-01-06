@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, NotImplementedException, Param, Post, UseGuards } from '@nestjs/common';
 import { DatasetTableService } from './dataset-table.service';
 import { DatasetsGuard } from '../datasets.guard';
 import { AddBaseTableDto, addJoinedTableDto } from './dto/add-table.dto';
@@ -22,4 +22,20 @@ export class DatasetTableController {
     async addJoinedTable(@Body() addTableDto: addJoinedTableDto, @Param('dataset_id') datasetId: string, @Auth() username: string) {
         return await this.datasetTableService.addJoinedTable(datasetId, username, addTableDto);
     }
+
+    @Get()
+    @HttpCode(HttpStatus.OK)
+    async getTables(@Param('dataset_id') datasetId: string, @Auth() username: string) {
+        throw new NotImplementedException();
+        // return await this.datasetTableService.getTables(datasetId,username);
+    }
+
+    @Post("delete/:id")
+    @HttpCode(HttpStatus.OK)
+    async deleteTable(@Param('id') tableId: number, @Param('dataset_id') datasetId: string, @Auth() username: string) {
+        throw new NotImplementedException();
+        // return await this.datasetTableService.deleteTable(tableId, datasetId, username);
+    }
+
+
 }

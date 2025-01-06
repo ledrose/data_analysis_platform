@@ -45,10 +45,17 @@ export class DatasetsService {
                 },
                 relations: {
                     fields: true,
-                    joins: true,
-                    connection: {
-                        user: true
-                    }
+                    joins: {
+                        leftSourceField: {
+                            sourceTable: true
+                        },
+                        rightSourceField: {
+                            sourceTable: true
+                        }
+                    },
+                    // connection: {
+                    //     user: true
+                    // }
                 }
             }
         )
