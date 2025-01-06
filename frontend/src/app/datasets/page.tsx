@@ -12,6 +12,7 @@ import { useGetDatasetApi, useGetDatasetFieldsApi } from "@/api/datasets";
 import { send } from "process";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetConnectionMetadataApi } from "@/api/connections";
+import { useExecuteDatasetQuery } from "@/api/query";
 // import { TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 
 // type EditorMode = 'relations' | 'fields'
@@ -25,11 +26,16 @@ export default function DatasetPage() {
   }
   const {data,sendRequest} = useGetDatasetApi();
   const {data:metadata,sendRequest:getMetadata} = useGetConnectionMetadataApi();
+  const {data:queryResults,sendRequest:executeQuery} = useExecuteDatasetQuery();
   useEffect(() => {
     sendRequest({
       onData(data) {
         getMetadata()(data.connectionId);
+        executeQuery()(data.id);
       },
+      onErr(err) {
+        router.push('/');
+      }
     })(datasetId);
   },[])
   return (
@@ -52,7 +58,7 @@ export default function DatasetPage() {
                 <SearchSidebar metadata={metadata}/>
                 <div className="flex-1 ml-6">
                   <h2 className="text-xl font-semibold mb-2">Table Relations</h2>
-                  <RelationsTable />
+                  <RelationsTable relations={data?.joins} />
                 </div>
               </div>
             </TabsContent>
@@ -62,7 +68,7 @@ export default function DatasetPage() {
           <ResizablePanel defaultSize={25} className="!overflow-y-auto">
             <div className="flex-1 overflow-hidden">
               <h2 className="text-xl font-semibold mb-2">Query Results</h2>
-              <ResultsTable />
+              <ResultsTable queryResults={queryResults} />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

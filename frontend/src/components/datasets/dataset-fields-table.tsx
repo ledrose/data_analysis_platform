@@ -38,33 +38,8 @@ export default function DatasetFieldsTable({datasetId}: {datasetId: string}) {
                 <TableCell>{field.id}</TableCell>
                 <TableCell>{field.name}</TableCell>
                 <TableCell>{field.sourceFields[0].name}</TableCell>
-                <TableCell>
-                  <Select defaultValue={field.type}>
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="string">String</SelectItem>
-                      <SelectItem value="date">Date</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Select defaultValue={field.aggregateType}>
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Select aggregation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="sum">Sum</SelectItem>
-                      <SelectItem value="avg">Average</SelectItem>
-                      <SelectItem value="count">Count</SelectItem>
-                      <SelectItem value="min">Min</SelectItem>
-                      <SelectItem value="max">Max</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
+                <TableCell>{field.type}</TableCell>
+                <TableCell>{field.aggregateType}</TableCell>
               </TableRow>
             ))}
           </TableBody>

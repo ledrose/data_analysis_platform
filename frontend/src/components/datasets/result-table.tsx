@@ -7,41 +7,46 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
-  import { ScrollArea } from "@/components/ui/scroll-area"
+  import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useExecuteDatasetQuery } from "@/api/query"
   
-  const ResultsTable = () => {
+  const ResultsTable = ({queryResults}: {queryResults: any[] | null}) => {
+    const columns = queryResults && Object.getOwnPropertyNames(queryResults[0]);
     // Mock data for the results
-    const columns = ["ID", "Name", "Email", "Order Total", "Product", "Category"]
-    const rows = Array(10).fill(null).map((_, i) => [
-      i + 1,
-      `User ${i + 1}`,
-      `user${i + 1}@example.com`,
-      `$${(Math.random() * 1000).toFixed(2)}`,
-      `Product ${i + 1}`,
-      `Category ${(i % 3) + 1}`
-    ])
+    // const columns = ["ID", "Name", "Email", "Order Total", "Product", "Category"]
+    // const rows = Array(10).fill(null).map((_, i) => [
+    //   i + 1,
+    //   `User ${i + 1}`,
+    //   `user${i + 1}@example.com`,
+    //   `$${(Math.random() * 1000).toFixed(2)}`,
+    //   `Product ${i + 1}`,
+    //   `Category ${(i % 3) + 1}`
+    // ])
   
     return (
       <ScrollArea className="h-full w-full border rounded-md">
-        <Table>
+        <Table >
           <TableHeader>
             <TableRow>
-              {columns.map((column, index) => (
+              {columns && columns.map((column: string, index) => (
                 <TableHead key={index}>{column}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row, rowIndex) => (
+            {queryResults && queryResults.map((row: Object, rowIndex: number) => (
               <TableRow key={rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <TableCell key={cellIndex}>{cell}</TableCell>
-                ))}
+                {
+                  Object.entries(row).map(([key, value],cellIndex) => (
+                    <TableCell key={cellIndex}>{value}</TableCell>
+                  ))
+                }
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </ScrollArea>
+        <ScrollBar orientation="horizontal" />
+        </ScrollArea>
     )
   }
   

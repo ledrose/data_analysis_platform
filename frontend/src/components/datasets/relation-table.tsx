@@ -9,44 +9,45 @@ import {
   } from "@/components/ui/table"
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
   import { ScrollArea } from "@/components/ui/scroll-area"
-  
-  const RelationsTable = () => {
-    const relations = [
-      { name: "Users", joinType: "inner", field1: "id", field2: "user_id" },
-      { name: "Orders", joinType: "left", field1: "id", field2: "order_id" },
-      { name: "Products", joinType: "right", field1: "id", field2: "product_id" },
-    ]
+  import { DatasetJoin } from "@backend/datasets/entities/dataset-join.entity"
+  const RelationsTable = ({relations}:{relations: DatasetJoin[] | undefined}) => {
+    const baseTable = relations && relations[0].rightSourceField.sourceTable;
+    // const relationsTest = [
+    //   { name: "Users", joinType: "inner", field1: "id", field2: "user_id" },
+    //   { name: "Orders", joinType: "left", field1: "id", field2: "order_id" },
+    //   { name: "Products", joinType: "right", field1: "id", field2: "product_id" },
+    // ]
   
     return (
       <ScrollArea className="h-[300px] w-full border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Table Name</TableHead>
+              <TableHead>Table Name 1</TableHead>
+              <TableHead>Field Name 1</TableHead>
               <TableHead>Join Type</TableHead>
-              <TableHead>Field 1</TableHead>
-              <TableHead>Field 2</TableHead>
+              <TableHead>Table Name 2</TableHead>
+              <TableHead>Field Name 2</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {relations.map((relation, index) => (
+            {baseTable && (
+              <TableRow key={-1}>
+                <TableCell>{baseTable.name}</TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            )
+            }
+            {relations && relations.map((relation, index) => (
               <TableRow key={index}>
-                <TableCell>{relation.name}</TableCell>
-                <TableCell>
-                  <Select defaultValue={relation.joinType}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select join type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="inner">Inner Join</SelectItem>
-                      <SelectItem value="left">Left Join</SelectItem>
-                      <SelectItem value="right">Right Join</SelectItem>
-                      <SelectItem value="full">Full Join</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>{relation.field1}</TableCell>
-                <TableCell>{relation.field2}</TableCell>
+                <TableCell>{relation.leftSourceField.sourceTable.name}</TableCell>
+                <TableCell>{relation.leftSourceField.name}</TableCell>
+                <TableCell>{relation.type}</TableCell>
+                <TableCell>{relation.rightSourceField.sourceTable.name}</TableCell>
+                <TableCell>{relation.rightSourceField.name}</TableCell>
               </TableRow>
             ))}
           </TableBody>
