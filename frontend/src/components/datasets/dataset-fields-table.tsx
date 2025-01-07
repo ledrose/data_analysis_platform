@@ -10,15 +10,6 @@ export default function DatasetFieldsTable({datasetId}: {datasetId: string}) {
     useEffect(() => {
       getDatasetFields()(datasetId);
     },[])
-    const fields = [
-      { id: 1, name: "User ID", sourceField: "users.id", type: "number", aggregation: "none" },
-      { id: 2, name: "Username", sourceField: "users.username", type: "string", aggregation: "none" },
-      { id: 3, name: "Email", sourceField: "users.email", type: "string", aggregation: "none" },
-      { id: 4, name: "Registration Date", sourceField: "users.created_at", type: "date", aggregation: "none" },
-      { id: 5, name: "Total Orders", sourceField: "orders.id", type: "number", aggregation: "count" },
-      { id: 6, name: "Total Spent", sourceField: "orders.total", type: "number", aggregation: "sum" },
-      // Add more fields as needed
-    ]
   
     return (
       <ScrollArea className="h-[calc(100vh-200px)] w-full border rounded-md">

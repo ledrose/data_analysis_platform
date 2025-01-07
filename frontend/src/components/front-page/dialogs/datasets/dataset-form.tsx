@@ -25,6 +25,7 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
     const {data: connections, isLoading, sendRequest: getConnections} = useGetConnectionsApi();
     if (!defaultConnection) {
         defaultConnection = connections?.[0]
+        form.setValue("connectionId", defaultConnection?.id || "");
     }
     useEffect(() => {
         getConnections()();
@@ -38,12 +39,12 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
                 name="name"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Connection Name</FormLabel>
+                    <FormLabel>Dataset Name</FormLabel>
                     <FormControl>
-                    <Input placeholder="My Database Connection" {...field} />
+                    <Input placeholder="My Dataset" {...field} />
                     </FormControl>
                     <FormDescription>
-                    A unique name for this database connection.
+                    A unique name for this dataset .
                     </FormDescription>
                     <FormMessage />
                 </FormItem>
@@ -59,7 +60,7 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                     <Textarea
-                        placeholder="Optional description for this connection"
+                        placeholder="Optional description for this dataset"
                         {...field}
                     />
                     </FormControl>

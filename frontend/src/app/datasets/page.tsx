@@ -1,15 +1,12 @@
 'use client'
-import useCustomFetch from "@/_helpers/CustomFetchHook";
 import DatasetFieldsTable from "@/components/datasets/dataset-fields-table";
 import RelationsTable from "@/components/datasets/relation-table";
 import ResultsTable from "@/components/datasets/result-table";
 import SearchSidebar from "@/components/datasets/search-sidebar";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Button } from "@/components/ui/button";
 import { use, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetDatasetApi, useGetDatasetFieldsApi } from "@/api/datasets";
-import { send } from "process";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetConnectionMetadataApi } from "@/api/connections";
 import { useExecuteDatasetQuery } from "@/api/query";
@@ -21,9 +18,6 @@ export default function DatasetPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const datasetId = searchParams.get('id') as string;
-  if (!datasetId) {
-    router.push('/');
-  }
   const {data,sendRequest} = useGetDatasetApi();
   const {data:metadata,sendRequest:getMetadata} = useGetConnectionMetadataApi();
   const {data:queryResults,sendRequest:executeQuery} = useExecuteDatasetQuery();
@@ -31,7 +25,9 @@ export default function DatasetPage() {
     sendRequest({
       onData(data) {
         getMetadata()(data.connectionId);
-        executeQuery()(data.id);
+        if (data.fields.length != 0) {
+          executeQuery()(data.id);
+        }
       },
       onErr(err) {
         router.push('/');

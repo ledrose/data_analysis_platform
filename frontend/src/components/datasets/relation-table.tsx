@@ -10,13 +10,9 @@ import {
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
   import { ScrollArea } from "@/components/ui/scroll-area"
   import { DatasetJoin } from "@backend/datasets/entities/dataset-join.entity"
+  import {SourceTable} from "@backend/source/entities/source-table.entity"
   const RelationsTable = ({relations}:{relations: DatasetJoin[] | undefined}) => {
-    const baseTable = relations && relations[0].rightSourceField.sourceTable;
-    // const relationsTest = [
-    //   { name: "Users", joinType: "inner", field1: "id", field2: "user_id" },
-    //   { name: "Orders", joinType: "left", field1: "id", field2: "order_id" },
-    //   { name: "Products", joinType: "right", field1: "id", field2: "product_id" },
-    // ]
+    const baseTable: SourceTable | undefined = relations && relations[0]?.rightSourceField.sourceTable;
   
     return (
       <ScrollArea className="h-[300px] w-full border rounded-md">

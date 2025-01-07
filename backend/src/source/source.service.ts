@@ -109,4 +109,35 @@ export class SourceService {
         }
         return tableColumnFields;
     }
+
+    async deleteSourceTable(datasetId: string, tableId: number) {
+        const table = await this.sourceTableRepository.findOne(
+            {where: {
+                id: tableId,
+                sourceDataset: {id: datasetId},
+                fields: {rightJoins: []}
+            },
+            relations: {
+                sourceDataset: true,
+                fields: {
+                    rightJoins: {
+                        leftSourceField: {
+                            sourceTable: true
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!table) {
+            throw new BadRequestException("Table not found");
+        }
+        const nonEmptyRightJoins = table.fields.filter((field) => field.rightJoins.length > 0);
+        if (nonEmptyRightJoins.length > 0) {
+            throw new BadRequestException(`Table ${table.name} has non resolved dependency on ${nonEmptyRightJoins.map((field) => field.rightJoins.map((join) => join.leftSourceField.sourceTable.name)).flat()}`);
+        }
+        
+        return await this.sourceTableRepository.delete({id: table.id},);
+    }
+
 }

@@ -12,16 +12,6 @@ import { useExecuteDatasetQuery } from "@/api/query"
   
   const ResultsTable = ({queryResults}: {queryResults: any[] | null}) => {
     const columns = queryResults && Object.getOwnPropertyNames(queryResults[0]);
-    // Mock data for the results
-    // const columns = ["ID", "Name", "Email", "Order Total", "Product", "Category"]
-    // const rows = Array(10).fill(null).map((_, i) => [
-    //   i + 1,
-    //   `User ${i + 1}`,
-    //   `user${i + 1}@example.com`,
-    //   `$${(Math.random() * 1000).toFixed(2)}`,
-    //   `Product ${i + 1}`,
-    //   `Category ${(i % 3) + 1}`
-    // ])
   
     return (
       <ScrollArea className="h-full w-full border rounded-md">

@@ -40,7 +40,7 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
         setRespState(fetchState<R>(false,null,err));
         toast({
            variant: "destructive",
-           duration: 1000,
+           duration: 2000,
            title: "Error",
            description: err?.message && err.message 
         });

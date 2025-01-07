@@ -14,14 +14,14 @@ export class DatasetJoin {
     id: number;
 
     @JoinColumn({name: 'leftSourceFieldId'})
-    @ManyToOne(() => SourceField, (field) => field.id)
+    @OneToOne(() => SourceField, (field) => field.id)
     leftSourceField: SourceField;
 
     @Column()
     leftSourceFieldId: number;
 
     @JoinColumn({name: 'rightSourceFieldId'})
-    @ManyToOne(() => SourceField, (field) => field.id)
+    @ManyToOne(() => SourceField, (field) => field.id, {cascade: true})
     rightSourceField: SourceField;
 
     @Column()

@@ -72,4 +72,10 @@ export class DatasetTableService {
         return await this.datasetJoinRepository.save(datasetJoin);
     }
 
+    async deleteTable(tableId: number, datasetId: string, username: string) {
+        return await this.sourceService.deleteSourceTable(datasetId, tableId);
+    }
+
+
 }
+

@@ -9,19 +9,6 @@ const SearchSidebar = ({metadata}: {metadata: TableMetadataDto | null}) => {
   
   const tables = metadata?.columns.map((table) => table.table);
   const columns = new Map(metadata?.columns.map((table) => [table.table, table.columns.map((column) => column.column)]));
-  // console.log(tables)
-  // console.log(columns)
-
-
-  // Mock data for tables and columns
-  // const tables = ["Users", "Orders", "Products", "Categories"]
-  // const columns = new Map([
-  //   ["Users", ["id", "name", "email", "created_at"]],
-  //   ["Orders", ["id", "user_id", "total", "status", "created_at"]],
-  //   ["Products", ["id", "name", "price", "category_id"]],
-  //   ["Categories", ["id", "name"]]
-  // ])
-
   return (
     <div className="w-64 bg-gray-100 p-4 flex flex-col h-full overflow-hidden">
       <h2 className="text-lg font-semibold mb-2">Available Tables</h2>

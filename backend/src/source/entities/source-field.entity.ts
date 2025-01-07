@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { SourceTable } from "./source-table.entity";
+import { DatasetJoin } from "src/datasets/entities/dataset-join.entity";
 
 @Entity()
 @Unique('upsert_name_id', ['name', 'sourceTableId'])
@@ -19,4 +20,10 @@ export class SourceField {
 
     @Column()
     sourceTableId: number
+
+    @OneToOne(() => DatasetJoin, (datasetJoin) => datasetJoin.leftSourceField, {cascade: true})
+    leftJoin: DatasetJoin
+
+    @OneToMany(() => DatasetJoin, (datasetJoin) => datasetJoin.rightSourceField)
+    rightJoins: DatasetJoin[]
 }
