@@ -2,11 +2,11 @@
 import { useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TableMetadataDto } from "@backend/connections/dto/table-info.dto"
+import { AddRelationDialog } from "../front-page/dialogs/add-relation-dialog"
+import { SourceTable } from "@backend/source/entities/source-table.entity"
 
-const SearchSidebar = ({metadata}: {metadata: TableMetadataDto | null}) => {
-  const [selectedTable, setSelectedTable] = useState<string | null>(null)
-  console.log(metadata)
-  
+const SearchSidebar = ({metadata,usedTables,datasetId, resetData, handleAddRelation}: {metadata: TableMetadataDto | null,datasetId: string, usedTables: SourceTable[], resetData: () => void,handleAddRelation: (newRelation: any) => void}) => {
+  const [selectedTable, setSelectedTable] = useState<string | null>(null)  
   const tables = metadata?.columns.map((table) => table.table);
   const columns = new Map(metadata?.columns.map((table) => [table.table, table.columns.map((column) => column.column)]));
   return (
@@ -20,7 +20,8 @@ const SearchSidebar = ({metadata}: {metadata: TableMetadataDto | null}) => {
               className={`cursor-pointer p-2 rounded ${selectedTable === table ? 'bg-blue-200' : 'hover:bg-gray-200'}`}
               onClick={() => setSelectedTable(table)}
             >
-              {table}
+              <span>{table}</span>
+              <AddRelationDialog table={table} datasetId={datasetId} resetData={resetData} usedTables={usedTables} handleAddRelation={handleAddRelation} tablesMetadata={metadata!}/>
             </li>
           ))}
         </ul>
@@ -29,7 +30,7 @@ const SearchSidebar = ({metadata}: {metadata: TableMetadataDto | null}) => {
       <h2 className="text-lg font-semibold mb-2">Columns</h2>
       <ScrollArea className="flex-grow">
         <ul>
-          {selectedTable && columns.get(selectedTable)!.map(column => (
+          {selectedTable && columns.get(selectedTable)?.map(column => (
             <li key={column} className="p-2">
               {column}
             </li>

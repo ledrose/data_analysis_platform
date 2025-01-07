@@ -25,8 +25,8 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
     const {data: connections, isLoading, sendRequest: getConnections} = useGetConnectionsApi();
     if (!defaultConnection) {
         defaultConnection = connections?.[0]
-        form.setValue("connectionId", defaultConnection?.id || "");
     }
+    form.setValue("connectionId", defaultConnection?.id || "");
     useEffect(() => {
         getConnections()();
     },[])

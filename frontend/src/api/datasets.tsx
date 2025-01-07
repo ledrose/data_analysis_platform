@@ -6,7 +6,7 @@ import { UpdateDatasetDto } from "@backend/datasets/dto/update-dataset.dto";
 import { AddFieldDto, SourceFieldLocationDto} from "@backend/datasets/dataset-field/dto/add-field.dto"
 import { UpdateFieldDto} from "@backend/datasets/dataset-field/dto/update-field.dto"
 import { DatasetField } from "@backend/datasets/entities/dataset-field.entity";
-
+import { AddBaseTableDto, AddJoinedTableDto } from "@backend/datasets/dataset-table/dto/add-table.dto"
 
 async function get_dataset(datasetId: string) {
     return request(`/api/datasets/${datasetId}`,"GET", {});
@@ -56,7 +56,18 @@ async function delete_dataset_field(datasetId: string, fieldId: number) {
     return request(`/api/datasets/${datasetId}/fields/${fieldId}/delete`,'POST', {});
 }
 
+async function add_base_table(datasetId: string, addTableDto: AddBaseTableDto) {
+    return request(`/api/datasets/${datasetId}/table/create_base`,'POST', {
+        body: addTableDto
+    })
+}
 
+
+async function add_joined_table(datasetId: string, addTableDto: AddJoinedTableDto) {
+    return request(`/api/datasets/${datasetId}/table/create_joined`,'POST', {
+        body: addTableDto
+    })
+}
 
 export const useGetDatasetApi = () => useCustomFetch<Dataset,typeof get_dataset>(get_dataset);
 export const useGetDatasetsApi = () => useCustomFetch<Dataset[],typeof get_datasets>(get_datasets);
@@ -69,3 +80,6 @@ export const useGetDatasetFieldApi = () => useCustomFetch<DatasetField,typeof ge
 export const useAddDatasetFieldApi = () => useCustomFetch<DatasetField[],typeof add_dataset_field>(add_dataset_field);
 export const useUpdateDatasetFieldApi = () => useCustomFetch<DatasetField,typeof update_dataset_field>(update_dataset_field);
 export const useDeleteDatasetFieldApi = () => useCustomFetch<DatasetField,typeof delete_dataset_field>(delete_dataset_field);
+
+export const useAddBaseTableApi = () => useCustomFetch<void,typeof add_base_table>(add_base_table);
+export const useAddJoinedTableApi = () => useCustomFetch<void,typeof add_joined_table>(add_joined_table);

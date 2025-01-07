@@ -53,9 +53,7 @@ export class DatasetsService {
                             sourceTable: true
                         }
                     },
-                    // connection: {
-                    //     user: true
-                    // }
+                    sourceTables: true
                 }
             }
         )

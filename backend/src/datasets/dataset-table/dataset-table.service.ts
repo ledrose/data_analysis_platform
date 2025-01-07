@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AddBaseTableDto, addJoinedTableDto } from './dto/add-table.dto';
+import { AddBaseTableDto, AddJoinedTableDto } from './dto/add-table.dto';
 import { SourceService } from 'src/source/source.service';
 import { DatasetsService } from '../datasets.service';
 import { Repository } from 'typeorm';
@@ -54,7 +54,7 @@ export class DatasetTableService {
         this.datasetFieldService.addFields(datasetId, username, addFieldDto);
     }
 
-    async addJoinedTable(datasetId: string, username: string, addTableDto: addJoinedTableDto) {
+    async addJoinedTable(datasetId: string, username: string, addTableDto: AddJoinedTableDto) {
         if (addTableDto.name == addTableDto.join.rightSourceTable) {
             throw new BadRequestException("Can't join a table to itself");
         }

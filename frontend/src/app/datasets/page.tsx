@@ -3,10 +3,11 @@ import DatasetFieldsTable from "@/components/datasets/dataset-fields-table";
 import RelationsTable from "@/components/datasets/relation-table";
 import ResultsTable from "@/components/datasets/result-table";
 import SearchSidebar from "@/components/datasets/search-sidebar";
+import {SourceTable} from "@backend/source/entities/source-table.entity"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { use, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetDatasetApi, useGetDatasetFieldsApi } from "@/api/datasets";
+import { useAddBaseTableApi, useAddJoinedTableApi, useGetDatasetApi, useGetDatasetFieldsApi } from "@/api/datasets";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetConnectionMetadataApi } from "@/api/connections";
 import { useExecuteDatasetQuery } from "@/api/query";
@@ -21,19 +22,31 @@ export default function DatasetPage() {
   const {data,sendRequest} = useGetDatasetApi();
   const {data:metadata,sendRequest:getMetadata} = useGetConnectionMetadataApi();
   const {data:queryResults,sendRequest:executeQuery} = useExecuteDatasetQuery();
+
+  // const usedTables: SourceTable[] = data?.joins.map((join) => join.rightSourceField.sourceTable.table) || [];
+  const resetData = () => sendRequest()(datasetId);
   useEffect(() => {
     sendRequest({
-      onData(data) {
-        getMetadata()(data.connectionId);
-        if (data.fields.length != 0) {
-          executeQuery()(data.id);
-        }
-      },
       onErr(err) {
         router.push('/');
       }
     })(datasetId);
   },[])
+  useEffect(() => {
+    if (data && data.fields.length != 0) {
+      executeQuery()(data.id);
+    }
+  },[data])
+
+  useEffect(() => {
+    if (data) {
+      getMetadata()(data.connectionId);
+    }
+  },[data?.connectionId])
+
+  const handleAddRelation = (newRelation: any) => {
+    
+  }
   return (
     <>
         <ResizablePanelGroup direction="vertical" className="rounded-lg border">
@@ -51,10 +64,10 @@ export default function DatasetPage() {
             </TabsContent>
             <TabsContent value="relations">
               <div className="flex mb-6 overflow-hidden">
-                <SearchSidebar metadata={metadata}/>
+                <SearchSidebar metadata={metadata} datasetId={datasetId} usedTables={data?.sourceTables ?? []} resetData={resetData} handleAddRelation={handleAddRelation}/>
                 <div className="flex-1 ml-6">
                   <h2 className="text-xl font-semibold mb-2">Table Relations</h2>
-                  <RelationsTable relations={data?.joins} />
+                  <RelationsTable tables={data?.sourceTables} relations={data?.joins} />
                 </div>
               </div>
             </TabsContent>

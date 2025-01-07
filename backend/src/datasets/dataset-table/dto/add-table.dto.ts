@@ -22,7 +22,7 @@ export class AddBaseTableDto {
     auto_populate: boolean = true;
 }   
 
-export class addJoinedTableDto {
+export class AddJoinedTableDto {
     @IsString()
     name: string
 

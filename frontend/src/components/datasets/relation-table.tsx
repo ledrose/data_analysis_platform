@@ -11,8 +11,9 @@ import {
   import { ScrollArea } from "@/components/ui/scroll-area"
   import { DatasetJoin } from "@backend/datasets/entities/dataset-join.entity"
   import {SourceTable} from "@backend/source/entities/source-table.entity"
-  const RelationsTable = ({relations}:{relations: DatasetJoin[] | undefined}) => {
-    const baseTable: SourceTable | undefined = relations && relations[0]?.rightSourceField.sourceTable;
+  const RelationsTable = ({relations,tables}:{relations: DatasetJoin[] | undefined,tables: SourceTable[] | undefined}) => {
+    const baseTable: SourceTable | undefined = tables && tables[0];
+    // relations && relations[0]?.rightSourceField.sourceTable;
   
     return (
       <ScrollArea className="h-[300px] w-full border rounded-md">

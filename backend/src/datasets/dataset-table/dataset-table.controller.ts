@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, NotImplementedException, Param, Post, UseGuards } from '@nestjs/common';
 import { DatasetTableService } from './dataset-table.service';
 import { DatasetsGuard } from '../datasets.guard';
-import { AddBaseTableDto, addJoinedTableDto } from './dto/add-table.dto';
+import { AddBaseTableDto, AddJoinedTableDto } from './dto/add-table.dto';
 import { Auth } from 'src/auth/auth.decorator';
 
 @UseGuards(DatasetsGuard)
@@ -19,7 +19,7 @@ export class DatasetTableController {
 
     @Post("create_joined")
     @HttpCode(HttpStatus.CREATED)
-    async addJoinedTable(@Body() addTableDto: addJoinedTableDto, @Param('dataset_id') datasetId: string, @Auth() username: string) {
+    async addJoinedTable(@Body() addTableDto: AddJoinedTableDto, @Param('dataset_id') datasetId: string, @Auth() username: string) {
         return await this.datasetTableService.addJoinedTable(datasetId, username, addTableDto);
     }
 
