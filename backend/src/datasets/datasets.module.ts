@@ -15,6 +15,6 @@ import { DatasetTableModule } from './dataset-table/dataset-table.module';
   providers: [DatasetsService,DatasetsGuard],  
   imports: [TypeOrmModule.forFeature([Dataset,DatasetField,DatasetJoin,Connection]), AuthModule, DatasetFieldModule, DatasetTableModule],
   controllers: [DatasetsController],
-  exports: [DatasetsService,AuthModule]
+  exports: [DatasetsService,DatasetFieldModule, AuthModule]
 })
 export class DatasetsModule {}

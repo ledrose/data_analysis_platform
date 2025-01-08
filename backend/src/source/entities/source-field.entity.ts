@@ -15,13 +15,13 @@ export class SourceField {
     dataType: string
 
     @JoinColumn({name: 'sourceTableId'})
-    @ManyToOne(() => SourceTable, (sourceTable) => sourceTable.fields)
+    @ManyToOne(() => SourceTable, (sourceTable) => sourceTable.fields,{onDelete: "CASCADE"})
     sourceTable: SourceTable
 
     @Column()
     sourceTableId: number
 
-    @OneToOne(() => DatasetJoin, (datasetJoin) => datasetJoin.leftSourceField, {cascade: true})
+    @OneToOne(() => DatasetJoin, (datasetJoin) => datasetJoin.leftSourceField, {onDelete: 'CASCADE'})
     leftJoin: DatasetJoin
 
     @OneToMany(() => DatasetJoin, (datasetJoin) => datasetJoin.rightSourceField)

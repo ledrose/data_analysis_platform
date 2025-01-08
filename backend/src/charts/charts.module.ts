@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ChartsController } from './charts.controller';
 import { ChartsService } from './charts.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,7 +9,7 @@ import { DatasetsModule } from 'src/datasets/datasets.module';
 
 @Module({
   controllers: [ChartsController],
-  imports: [TypeOrmModule.forFeature([Chart, ChartAxis]),DatasetFieldModule,DatasetsModule],
+  imports: [TypeOrmModule.forFeature([Chart, ChartAxis]),forwardRef(() => DatasetsModule)],
   exports: [ChartsService],
   providers: [ChartsService]
 })

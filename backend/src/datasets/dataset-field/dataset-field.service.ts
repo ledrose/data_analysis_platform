@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { AddFieldDto } from './dto/add-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +6,7 @@ import { DatasetField, ValueType } from '../entities/dataset-field.entity';
 import { In, Repository } from 'typeorm';
 import { SourceService } from 'src/source/source.service';
 import { DatasetsService } from '../datasets.service';
+import { QueryService } from 'src/query/query.service';
 
 @Injectable()
 export class DatasetFieldService {
@@ -13,6 +14,7 @@ export class DatasetFieldService {
         @InjectRepository(DatasetField)
         private readonly datasetFieldRepository: Repository<DatasetField>,
         private readonly sourceService: SourceService,
+        private readonly queryService: QueryService
     ) {}
     //Really stupid solution but user can change this prediction. Alternative solution (still stupid) can be reading value from database and guessing on it buuuttt I do not want to do that.
     //Although the order of return types should be different so that it falls back onto more general types.
@@ -48,7 +50,23 @@ export class DatasetFieldService {
         if (test.length != 0) {
             throw new BadRequestException(`Fields with the names [${test.map((field) => field.name)}] already exists`);
         }
-        // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
+
+        for (const field of fieldsDto) {
+            if (field.isSimple === false) {
+                const formula = field.sourceFields.reduce((prev,sourceField, index) => {
+                    return prev.replaceAll("${"+index+"}",`"${sourceField.table}"."${sourceField.column}"`);
+                }, field.formula);
+                try {
+                    await this.queryService.testFormulaField(datasetId, 
+                        formula, 
+                        [...new Set(field.sourceFields.map((el) => el.table))]
+                    );
+                } catch (error) {
+                    throw new BadRequestException(`Invalid formula: ${error}`);
+                }
+            }
+        }
+
         const tableColumns = this.getUniqueTableColumns(fieldsDto);
         console.log(tableColumns);
         const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(datasetId, tableColumns);
@@ -103,7 +121,7 @@ export class DatasetFieldService {
         // throw new Error('Method not implemented.');
     }
     async getFields(datasetId: string) {
-        return await this.datasetFieldRepository.find({where: {datasetId},relations: {sourceFields: true}});
+        return await this.datasetFieldRepository.find({where: {datasetId},relations: {sourceFields: {sourceTable: true}}});
     }
     async getField(datasetId: string, fieldId: number) {
         return await this.datasetFieldRepository.findOne(

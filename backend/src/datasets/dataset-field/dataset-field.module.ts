@@ -5,10 +5,11 @@ import { DatasetsModule } from '../datasets.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatasetField } from '../entities/dataset-field.entity';
 import { SourceModule } from 'src/source/source.module';
+import { QueryModule } from 'src/query/query.module';
 
 @Module({
   providers: [DatasetFieldService],
-  imports: [forwardRef(() => DatasetsModule),TypeOrmModule.forFeature([DatasetField]), SourceModule],
+  imports: [forwardRef(() => DatasetsModule),TypeOrmModule.forFeature([DatasetField]), SourceModule,forwardRef(() => QueryModule)],
   controllers: [DatasetFieldController],
   exports: [DatasetFieldService]
 })

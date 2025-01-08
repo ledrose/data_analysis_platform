@@ -14,7 +14,7 @@ export class DatasetJoin {
     id: number;
 
     @JoinColumn({name: 'leftSourceFieldId'})
-    @OneToOne(() => SourceField, (field) => field.id)
+    @OneToOne(() => SourceField, (field) => field.id,{onDelete: 'CASCADE'})
     leftSourceField: SourceField;
 
     @Column()
