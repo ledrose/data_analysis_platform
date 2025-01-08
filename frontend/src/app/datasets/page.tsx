@@ -44,7 +44,11 @@ export default function DatasetPage() {
 
   useEffect(() => {
     if (data) {
-      getMetadata()(data.connectionId);
+      getMetadata({
+        onData: (data) => {
+          datasetStore.setMetadata(data);
+        }
+      })(data.connectionId);
     }
   },[data?.connectionId]);
 
@@ -63,7 +67,7 @@ export default function DatasetPage() {
             <TabsContent value="fields">
               <div className="flex-1 overflow-hidden">
                 <h2 className="text-xl font-semibold mb-2">Dataset Fields</h2>
-                <DatasetFieldsTable datasetId={datasetId}/>
+                <DatasetFieldsTable datasetId={datasetId} usedTables={data?.sourceTables ?? []}/>
               </div>
             </TabsContent>
             <TabsContent value="relations">
