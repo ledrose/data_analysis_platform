@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConnectionsModule } from './connections/connections.module';
 import { DatasetsModule } from './datasets/datasets.module';
-import { GraphsModule } from './graphs/graphs.module';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import * as Joi from '@hapi/joi';
@@ -12,6 +11,8 @@ import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { QueryModule } from './query/query.module';
+import { SourceModule } from './source/source.module';
+import { ChartsModule } from './charts/charts.module';
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ import { QueryModule } from './query/query.module';
   //   rootPath: join(__dirname, '..', '..','frontend', 'out'),
   //   renderPath: "/*"
   // }),
-  ConnectionsModule, DatasetsModule, GraphsModule, AuthModule, QueryModule],
+  ConnectionsModule, DatasetsModule, AuthModule, QueryModule, SourceModule, ChartsModule],
   controllers: [AppController],
   providers: [AppService],
 })

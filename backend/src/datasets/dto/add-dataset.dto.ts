@@ -1,14 +1,14 @@
 import { IsString } from "class-validator";
-import { DatasetFieldDto } from "./dataset-field.dto";
 
 export class AddDatasetDto {
     @IsString()
     name: string;
     
     @IsString()
-    connection_id: string;
+    description: string;
 
     @IsString()
-    primary_table: string;
+    connectionId: string;
+    
     // fields: DatasetFieldDto[];
 }

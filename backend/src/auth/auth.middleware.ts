@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 
 @Injectable()
@@ -12,6 +12,12 @@ export class AuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: () => void) {
     const token = this.extractTokenFromHeader(req);
+    if (this.configService.get<string>('IGNORE_AUTH')) {
+      req["user"] = "regroe";
+      next();
+      return;
+    }
+
     if (!token) {
       next();
       return;
@@ -23,9 +29,14 @@ export class AuthMiddleware implements NestMiddleware {
         }
       );
       req["user"] = payload.username;
-    } finally {
-      next();
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        return res.status(401).json({ message: 'Token expired', "statusCode": "401" });
+      } else {
+        return res.status(401).json({ message: 'Invalid token', "statusCode": "401" });
+      }
     }
+    next();
   }
 
 

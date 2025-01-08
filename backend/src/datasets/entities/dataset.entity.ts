@@ -1,7 +1,9 @@
 import { Connection } from "../../connections/entities/connection.entity";
-import { Column, Entity, Join, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { DatasetField } from "./dataset-field.entity";
 import { DatasetJoin } from "./dataset-join.entity";
+import { SourceTable } from "src/source/entities/source-table.entity";
+import { Chart } from "src/charts/entities/chart.entity";
 
 @Entity()
 export class Dataset {
@@ -11,16 +13,25 @@ export class Dataset {
     @Column()
     name: string;
 
-    @JoinTable()
-    @OneToMany(() => Connection, (connection) => connection.datasets)
+    @Column()
+    description: string;
+
+    @JoinColumn({name: 'connectionId'})
+    @ManyToOne(() => Connection, (connection) => connection.datasets)
     connection: Connection;
 
     @Column()
-    primary_table: string;
-    
-    @OneToMany(() => DatasetField, (field) => field.dataset)
+    connectionId: string
+
+    @OneToMany(() => DatasetField, (field) => field.dataset, {onDelete: 'CASCADE'})
     fields: DatasetField[];
 
-    @ManyToOne(() => DatasetJoin, (join) => join.dataset)
+    @OneToMany(() => DatasetJoin, (join) => join.dataset,{onDelete: 'CASCADE'})
     joins: DatasetJoin[]
+
+    @OneToMany(() => SourceTable, (table) => table.sourceDataset, {onDelete: 'CASCADE'})
+    sourceTables: SourceTable[];
+
+    @OneToMany(() => Chart, (chart) => chart.dataset)
+    charts: Chart[]
 }

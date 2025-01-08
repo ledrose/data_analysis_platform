@@ -12,7 +12,7 @@ import { User } from 'src/auth/entities/user.entity';
   controllers: [ConnectionsController],
   imports: [TypeOrmModule.forFeature([Connection,User])],
   providers: [ConnectionsService, ConnectionMetadataService],
-  exports: [ConnectionsService]
+  exports: [ConnectionsService,ConnectionMetadataService]
 })
 
 export class ConnectionsModule {}

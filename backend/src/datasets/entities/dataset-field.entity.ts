@@ -1,5 +1,7 @@
-import { Column, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Dataset } from "./dataset.entity";
+import { SourceField } from "src/source/entities/source-field.entity";
+import { DatasetJoin } from "./dataset-join.entity";
 
 export enum DtoType {
     BASE = "base",
@@ -9,8 +11,11 @@ export enum DtoType {
 
 export enum ValueType {
     STRING = "string",
-    NUMBER = "number",
+    INTEGER = "integer",
+    FLOAT = "float",
     DATE = "date",
+    DATETIME = "datetime",
+    BOOLEAN = "boolean"
 }
 
 export enum AggregateType {
@@ -20,29 +25,41 @@ export enum AggregateType {
 }
 
 @Entity()
+@Unique('upsert_dataset_field', ["name", "datasetId"])
 export class DatasetField {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @OneToMany(() => DatasetJoin, (join) => join.leftSourceField, {onDelete: 'CASCADE'})    
+    leftJoin: DatasetJoin[]
+
+    @OneToMany(() => DatasetJoin, (join) => join.leftSourceField, {onDelete: 'CASCADE'})    
+    rightJoin: DatasetJoin[]
+
+    @Column({unique: true})
     name: string;
 
-    @JoinTable()
+    @JoinColumn({name: 'datasetId'})
     @ManyToOne(() => Dataset, (dataset) => dataset.fields)
     dataset: Dataset;
+
+    @Column()
+    datasetId: string
 
     @Column({type: "enum", enum: ValueType})
     type: ValueType;
 
-    @Column({type: "enum", enum: DtoType})
-    dto_type: DtoType
+    @Column({default: true})
+    isSimple: boolean
 
-    @Column()
-    formula?: string;
+    @Column({type: "enum", enum: AggregateType, nullable: true})
+    aggregateType: AggregateType;
 
-    @Column({type: "enum", enum: AggregateType})
-    aggregate_type?: AggregateType;
+    @Column({nullable: true})
+    formula: string
 
-    @Column()
-    base_field?: string;
+    @JoinTable()
+    // @JoinColumn({name: 'sourceFieldId'})
+    @ManyToMany(() => SourceField,{cascade: true})
+    sourceFields: SourceField[];
 }

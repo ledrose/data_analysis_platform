@@ -1,7 +1,14 @@
+import { Type } from "class-transformer"
+import { IsArray, IsOptional } from "class-validator"
+
 export class QueryDatasetDto {
-    dataset_id: string
+    @IsArray()
+    @IsOptional()
+    @Type(type => String)
     fields: string[]
+
+    @IsArray()
+    @IsOptional()
+    @Type(type => String)
     tables: string[]
-    limit: number
-    page: number
 }

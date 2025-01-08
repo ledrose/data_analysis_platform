@@ -1,5 +1,6 @@
-import { IsDecimal, IsEnum, IsInt, IsNumber, IsString } from "class-validator"
+import { IsArray, IsDecimal, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested, ValidatePromise } from "class-validator"
 import { ConnectionType } from "../entities/connection.entity"
+import { Type } from "class-transformer"
 
 export class ConnectionDto {
     @IsString()
@@ -7,6 +8,9 @@ export class ConnectionDto {
     
     @IsEnum(ConnectionType)
     type: ConnectionType
+
+    @IsString()
+    description: string
 
     @IsString()
     host: string
@@ -22,4 +26,11 @@ export class ConnectionDto {
 
     @IsString()   
     database: string
+
+    // @IsArray()
+    // @ValidateNested()
+    // @Type(type => String)
+    @IsString()
+    @IsOptional()
+    schema?: string
 }
