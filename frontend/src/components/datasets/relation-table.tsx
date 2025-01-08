@@ -11,7 +11,14 @@ import {
   import { ScrollArea } from "@/components/ui/scroll-area"
   import { DatasetJoin } from "@backend/datasets/entities/dataset-join.entity"
   import {SourceTable} from "@backend/source/entities/source-table.entity"
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Button } from "../ui/button"
+import { useDeleteDatasetFieldApi, useDeleteTableApi } from "@/api/datasets"
+import { useDatasetStore } from "@/_store/store"
   const RelationsTable = ({relations,tables}:{relations: DatasetJoin[] | undefined,tables: SourceTable[] | undefined}) => {
+    const {datasetId,updateDataset} = useDatasetStore();
+    const {sendRequest} = useDeleteTableApi();
+
     const baseTable: SourceTable | undefined = tables && tables[0];
     // relations && relations[0]?.rightSourceField.sourceTable;
   
@@ -35,6 +42,12 @@ import {
                 <TableCell></TableCell>
                 <TableCell></TableCell>
                 <TableCell></TableCell>
+                <TableCell>
+                    <DeleteRelationDialog
+                      relationName={baseTable.name}
+                      onDeleteRelation={() => {sendRequest({onData: updateDataset})(datasetId,baseTable.id)}}
+                    />
+                </TableCell>
               </TableRow>
             )
             }
@@ -45,6 +58,15 @@ import {
                 <TableCell>{relation.type}</TableCell>
                 <TableCell>{relation.rightSourceField.sourceTable.name}</TableCell>
                 <TableCell>{relation.rightSourceField.name}</TableCell>
+                <TableCell>
+                  <Button variant="outline" size="sm" onClick={() => {}} className="mr-2">
+                      Edit
+                    </Button>
+                    <DeleteRelationDialog
+                      relationName={relation.leftSourceField.sourceTable.name + '-' + relation.rightSourceField.sourceTable.name}
+                      onDeleteRelation={() => {sendRequest({onData: updateDataset})(datasetId,relation.leftSourceField.sourceTable.id)}}
+                    />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -53,4 +75,35 @@ import {
     )
   }
   
+  interface DeleteRelationDialogProps {
+    relationName: string
+    onDeleteRelation: () => void
+  }
+  
+
+  function DeleteRelationDialog({ relationName, onDeleteRelation }: DeleteRelationDialogProps) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="destructive" size="sm">Delete</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Relation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the relation {relationName}? This action is irreversible and may affect other parts of your dataset.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" variant="destructive" onClick={onDeleteRelation}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+  
+
   export default RelationsTable

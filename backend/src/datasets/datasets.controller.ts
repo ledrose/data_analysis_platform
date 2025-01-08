@@ -44,7 +44,5 @@ export class DatasetsController {
     async delete(@Param('dataset_id') datasetId: string, @Auth() user: string) {
         return this.datasetsService.delete(datasetId);
     }
-
-
     
 }

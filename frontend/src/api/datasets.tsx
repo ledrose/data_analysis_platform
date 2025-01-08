@@ -69,6 +69,10 @@ async function add_joined_table(datasetId: string, addTableDto: AddJoinedTableDt
     })
 }
 
+async function delete_table(datasetId: string,tableId: number,) {
+    return request(`/api/datasets/${datasetId}/table/delete/${tableId}`,'DELETE', {});
+}
+
 export const useGetDatasetApi = () => useCustomFetch<Dataset,typeof get_dataset>(get_dataset);
 export const useGetDatasetsApi = () => useCustomFetch<Dataset[],typeof get_datasets>(get_datasets);
 export const useCreateDatasetApi = () => useCustomFetch<Dataset,typeof create_dataset>(create_dataset);
@@ -83,3 +87,4 @@ export const useDeleteDatasetFieldApi = () => useCustomFetch<DatasetField,typeof
 
 export const useAddBaseTableApi = () => useCustomFetch<void,typeof add_base_table>(add_base_table);
 export const useAddJoinedTableApi = () => useCustomFetch<void,typeof add_joined_table>(add_joined_table);
+export const useDeleteTableApi = () => useCustomFetch<void,typeof delete_table>(delete_table);

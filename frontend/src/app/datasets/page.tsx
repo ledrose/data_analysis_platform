@@ -11,6 +11,7 @@ import { useAddBaseTableApi, useAddJoinedTableApi, useGetDatasetApi, useGetDatas
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGetConnectionMetadataApi } from "@/api/connections";
 import { useExecuteDatasetQuery } from "@/api/query";
+import { useDatasetStore } from "@/_store/store";
 // import { TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 
 // type EditorMode = 'relations' | 'fields'
@@ -19,30 +20,33 @@ export default function DatasetPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const datasetId = searchParams.get('id') as string;
+  const datasetStore = useDatasetStore();
+  useEffect(() => {
+    datasetStore.setDatasetId(datasetId);
+  },[datasetId])
   const {data,sendRequest} = useGetDatasetApi();
   const {data:metadata,sendRequest:getMetadata} = useGetConnectionMetadataApi();
   const {data:queryResults,sendRequest:executeQuery} = useExecuteDatasetQuery();
-
-  // const usedTables: SourceTable[] = data?.joins.map((join) => join.rightSourceField.sourceTable.table) || [];
   const resetData = () => sendRequest()(datasetId);
   useEffect(() => {
+    datasetStore.setUpdateDataset(resetData);
     sendRequest({
-      onErr(err) {
+      onErr: (err) => {
         router.push('/');
       }
     })(datasetId);
-  },[])
+  },[]);
   useEffect(() => {
     if (data && data.fields.length != 0) {
       executeQuery()(data.id);
     }
-  },[data])
+  },[data?.fields]);
 
   useEffect(() => {
     if (data) {
       getMetadata()(data.connectionId);
     }
-  },[data?.connectionId])
+  },[data?.connectionId]);
 
   const handleAddRelation = (newRelation: any) => {
     

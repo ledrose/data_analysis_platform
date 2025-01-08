@@ -1,14 +1,16 @@
 import {create} from "zustand";
 import { persist } from "zustand/middleware";
 
-interface ErrorState {
-    error: string | null,
-    setError: (error: string) => void,
-    clearError: () => void
+interface DatasetState {
+    datasetId: string,
+    updateDataset: () => void,
+    setDatasetId: (datasetId: string) => void,
+    setUpdateDataset: (updateDataset: () => void) => void
 }
 
-export const useErrorStore = create<ErrorState>()((set) => ({
-    error: null,
-    setError: (error: string) => set({error}),
-    clearError: () => set({error: null})
+export const useDatasetStore = create<DatasetState>()((set) => ({
+    datasetId: "",
+    updateDataset: () => {},
+    setDatasetId: (datasetId: string) => set({datasetId}),
+    setUpdateDataset: (updateDataset: () => void) => set({updateDataset})
 }))
