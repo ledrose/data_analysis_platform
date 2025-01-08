@@ -31,14 +31,14 @@ export class DatasetFieldController {
         return await this.datasetFieldService.addFields(dataset_id, username, dataset_dto);
     }
 
-    @Post('update/:field_id')
+    @Post(':field_id/update')
     @HttpCode(HttpStatus.OK)
 
     async updateField(@Param('dataset_id') dataset_id: string,@Param('field_id') field_id: number,@Body() dataset_dto: UpdateFieldDto, @Auth() username: string) {
         return await this.datasetFieldService.updateField(dataset_id, field_id, username, dataset_dto);
     }
 
-    @Post('delete/:field_id')
+    @Post(':field_id/delete')
     @HttpCode(HttpStatus.OK)
     async deleteField(@Param('dataset_id') dataset_id: string, @Param('field_id') field_id: number) {
         return await this.datasetFieldService.deleteField(dataset_id, field_id);

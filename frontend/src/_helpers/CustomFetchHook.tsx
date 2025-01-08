@@ -1,7 +1,5 @@
-import { useErrorStore } from "@/_store/store";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
-import { json } from "stream/consumers";
 
 
 
@@ -57,28 +55,13 @@ export default function useCustomFetch<R,T extends (...args: any) => Promise<Res
                         setRespState(fetchState<R>(false,json as R,null));
 
                     })
-                    // response.text().then((text)=> {
-                    //     const data = text && JSON.parse(text);
-                    //     if (data === "") {
-                    //         const err = (data && data.message) || response.statusText;
-                    //         handlers?.onErr?.(data);
-                    //         errAction(err);
-                    //     } else {
-                    //         handlers?.onData?.(data);
-                    //         setRespState(fetchState<R>(false,data,null));
-                    //         // console.log(data);
-                    //     }
-                    // });
-                    // console.log("Ok: "+resp);
                 } else if (response.status == 401) {
-                    // navigate("/login")
                     response.json().then((json) => {
                         handlers?.onErr?.(json as ApiError);
                         errAction(json as ApiError);
                     }).catch((err) => {
                         console.log(err);
-                    })
-    
+                    })    
                 }
                 else {
                     response.json().then((json) => {

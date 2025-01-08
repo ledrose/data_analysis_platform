@@ -52,7 +52,7 @@ export class DatasetFieldService {
         }
 
         for (const field of fieldsDto) {
-            if (field.isSimple === false) {
+            if (!field.isSimple) {
                 const formula = field.sourceFields.reduce((prev,sourceField, index) => {
                     return prev.replaceAll("${"+index+"}",`"${sourceField.table}"."${sourceField.column}"`);
                 }, field.formula);
@@ -98,6 +98,26 @@ export class DatasetFieldService {
         if (!field) {
             throw new BadRequestException('Field not found');
         }
+
+        if (!field.isSimple) {
+            for (const field of [datasetDto]) {
+                if (!field.isSimple) {
+                    const formula = field.sourceFields.reduce((prev,sourceField, index) => {
+                        return prev.replaceAll("${"+index+"}",`"${sourceField.table}"."${sourceField.column}"`);
+                    }, field.formula);
+                    try {
+                        await this.queryService.testFormulaField(datasetId, 
+                            formula, 
+                            [...new Set(field.sourceFields.map((el) => el.table))]
+                        );
+                    } catch (error) {
+                        throw new BadRequestException(`Invalid formula: ${error}`);
+                    }
+                }
+            }
+        }
+        
+
         let sourceFields = undefined;
         if (datasetDto.sourceFields) {
             const tableColumns = new Map();
@@ -107,7 +127,6 @@ export class DatasetFieldService {
                 }
                 tableColumns.get(sourceField.table).push(sourceField.column);
             }
-            // const connectionId = (await this.datasetService.get_dataset(datasetId,username))?.connectionId
             const dbFieldsInfo = await this.sourceService.ensureSourceFieldsExist(datasetId, tableColumns);
             sourceFields = dbFieldsInfo.flatMap((fieldInfo) => fieldInfo.columnInfo.flatMap((columnInfo) => columnInfo.info));
         }

@@ -37,7 +37,7 @@ export default function DatasetPage() {
     })(datasetId);
   },[]);
   useEffect(() => {
-    if (data && data.fields.length != 0) {
+    if (data && data.fields.length != 0 && data.sourceTables.length != 0) {
       executeQuery()(data.id);
     }
   },[data?.fields]);

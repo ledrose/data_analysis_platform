@@ -1,6 +1,6 @@
-import { use, useState } from 'react'
+import { PropsWithChildren, use, useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { FieldValues, SubmitHandler, useForm, UseFormReturn } from "react-hook-form"
 import * as z from "zod"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -12,9 +12,8 @@ import { Source } from 'postcss'
 import { SourceTable } from '@backend/source/entities/source-table.entity'
 import { Textarea } from '@/components/ui/textarea'
 import { useDatasetStore } from '@/_store/store'
-import { useAddDatasetFieldApi } from '@/api/datasets'
+import { useAddDatasetFieldApi, useUpdateDatasetFieldApi } from '@/api/datasets'
 import { AddFieldDto } from '@backend/datasets/dataset-field/dto/add-field.dto'
-import { get } from 'http'
 
 
 export enum AggregateType {
@@ -56,24 +55,101 @@ const sourceFieldSchema = z.object({
   sourceField: z.string().min(1, "Source field is required"),
 })
 
-const formSchema = z.discriminatedUnion("fieldType", [
+export const formSchema = z.discriminatedUnion("fieldType", [
   z.object({ fieldType: z.literal("calculated"), ...calculatedFieldSchema.shape }),
   z.object({ fieldType: z.literal("source"), ...sourceFieldSchema.shape }),
 ])
 
-interface AddDatasetFieldDialogProps {
-  tables: SourceTable[]
-  onAddField: (field: z.infer<typeof formSchema>) => void
+
+function getPayload(values: z.infer<typeof formSchema>): AddFieldDto {
+  if (values.fieldType === "source") {
+      return {
+          name: values.name,
+          type: values.type,
+          isSimple: true,
+          aggregateType: values.aggregation,
+          sourceFields: [{
+              table: values.sourceTable,
+              column: values.sourceField
+          }]
+      }
+  } else {
+      const tableColumnRegex = /\$\{([^.]+)\.([^}]+)\}/g; // Regex to find ${table.column}
+      const tableColumns = [];
+      let match;
+      let manipulatedString = values.formula;
+
+      // 1. Extract table.column instances
+      while ((match = tableColumnRegex.exec(values.formula)) !== null) {
+          tableColumns.push({
+          table: match[1],
+          column: match[2],
+          });
+      }
+
+      // 2. Replace instances with ${index}
+      for (let i = 0; i < tableColumns.length; i++) {
+          const table = tableColumns[i].table;
+          const column = tableColumns[i].column;
+          const regex = new RegExp(`\\$\\{${table}\\.${column}\\}`, 'g'); // Specific regex for each table.column
+          manipulatedString = manipulatedString.replace(regex, `\$\{${i}\}`);
+      }
+      return {
+          name: values.name,
+          type: values.type,
+          isSimple: false,
+          aggregateType: values.aggregation,
+          formula: manipulatedString,
+          sourceFields: tableColumns
+      }
+  }
 }
 
 
-export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDialogProps) {
-    const {metadata,datasetId,updateDataset} = useDatasetStore((state) => state);
-    const {sendRequest} = useAddDatasetFieldApi();
-    const [open, setOpen] = useState(false)
-    const [activeTab, setActiveTab] = useState<"calculated" | "source">("source")
+interface UpdateDatasetFieldDialogProps {
+  tables: SourceTable[],
+  fieldId: number,
+  defaultValues?: z.infer<typeof formSchema>,
+  onAddField: (field: z.infer<typeof formSchema>) => void,
+}
 
-    const form = useForm<z.infer<typeof formSchema>>({
+export function UpdateDatasetFieldDialog({ children, tables, onAddField,defaultValues,fieldId }: PropsWithChildren<UpdateDatasetFieldDialogProps>) {
+  const datasetId = useDatasetStore((state) => state.datasetId);
+  const updateDataset = useDatasetStore((state) => state.updateDataset);
+  const {sendRequest:updateField} = useUpdateDatasetFieldApi();
+
+  const [open, setOpen] = useState(false)
+
+  const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: defaultValues
+    }); 
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+      updateField({
+        onData: (_) => {
+            updateDataset();
+            onAddField(values);
+            setOpen(false)
+            form.reset()
+        }
+    })(datasetId, fieldId, getPayload(values));
+  }
+  return <FieldForm children={children} form={form} onSubmit={onSubmit} tables={tables} openHook={[open, setOpen]} text={{title: "Update Dataset Field", submitText: "Update Field", openButtonText: "Update"}}/>
+}
+
+
+interface AddDatasetFieldDialogProps {
+  tables: SourceTable[],
+  onAddField: (field: z.infer<typeof formSchema>) => void,
+}
+
+export function AddDatasetFieldDialog({children, tables, onAddField}: PropsWithChildren<AddDatasetFieldDialogProps>) {
+  const datasetId = useDatasetStore((state) => state.datasetId);
+  const updateDataset = useDatasetStore((state) => state.updateDataset);
+  const {sendRequest:addField} = useAddDatasetFieldApi();
+  const [open, setOpen] = useState(false)
+  const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
         fieldType: "source",
@@ -82,76 +158,46 @@ export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDia
         aggregation: AggregateType.NONE,
         sourceTable: "",
         sourceField: "",
-        },
-    })
+      },
+  })
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    addField({
+          onData: (_) => {
+              updateDataset();
+              onAddField(values);
+              setOpen(false)
+              form.reset()
+          }
+      })(datasetId,[getPayload(values)]); 
+  }
+  return <FieldForm children={children} form={form} onSubmit={onSubmit} tables={tables} openHook={[open, setOpen]} text={{title:"Add Dataset Field",submitText:"Add Field",openButtonText:"Add Field"}}/>
+}
 
-    const { watch, setValue } = form
+interface FieldFormProps {
+  tables: SourceTable[],
+  openHook: [open: boolean, setOpen: React.Dispatch<React.SetStateAction<boolean>>],
+  form: UseFormReturn<z.infer<typeof formSchema>>, 
+  onSubmit: (values: z.infer<typeof formSchema>) => void,
+  text: {
+    title: string,
+    submitText: string
+    openButtonText: string
+  }
+}
 
-    const sourceTable = watch("sourceTable")
 
-    function getPayload(values: z.infer<typeof formSchema>): AddFieldDto {
-        if (values.fieldType === "source") {
-            return {
-                name: values.name,
-                type: values.type,
-                isSimple: true,
-                aggregateType: values.aggregation,
-                sourceFields: [{
-                    table: sourceTable,
-                    column: values.sourceField
-                }]
-            }
-        } else {
-            const tableColumnRegex = /\$\{([^.]+)\.([^}]+)\}/g; // Regex to find ${table.column}
-            const tableColumns = [];
-            let match;
-            let manipulatedString = values.formula;
-
-            // 1. Extract table.column instances
-            while ((match = tableColumnRegex.exec(values.formula)) !== null) {
-                tableColumns.push({
-                table: match[1],
-                column: match[2],
-                });
-            }
-
-            // 2. Replace instances with ${index}
-            for (let i = 0; i < tableColumns.length; i++) {
-                const table = tableColumns[i].table;
-                const column = tableColumns[i].column;
-                const regex = new RegExp(`\\$\\{${table}\\.${column}\\}`, 'g'); // Specific regex for each table.column
-                manipulatedString = manipulatedString.replace(regex, `\$\{${i}\}`);
-            }
-            return {
-                name: values.name,
-                type: values.type,
-                isSimple: false,
-                aggregateType: values.aggregation,
-                formula: manipulatedString,
-                sourceFields: tableColumns
-            }
-        }
-    }
-
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        sendRequest({
-            onData: (_) => {
-                updateDataset();
-                onAddField(values);
-                setOpen(false)
-                form.reset()
-            }
-        })(datasetId,[getPayload(values)]);
-    }
-
-    return (
+function FieldForm({children, form, onSubmit, tables,openHook:[open, setOpen],text}: PropsWithChildren<FieldFormProps>) {
+  const metadata = useDatasetStore((state) => state.metadata);
+  const [activeTab, setActiveTab] = useState<"calculated" | "source">(form.getValues("fieldType") || "source")
+  const { watch, setValue } = form
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Dataset Field</Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Dataset Field</DialogTitle>
+          <DialogTitle>{text.title}</DialogTitle>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={(value: string) => {
           setActiveTab(value as "calculated" | "source")
@@ -185,7 +231,6 @@ export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDia
                       <FormLabel>Formula</FormLabel>
                       <FormControl>
                         <Textarea  {...field}/>
-                        {/* <Input {...field} /> */}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -239,7 +284,7 @@ export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDia
                     </FormItem>
                   )}
                 />
-                <Button type="submit">Add Field</Button>
+                <Button type="submit">{text.submitText}</Button>
               </form>
             </Form>
           </TabsContent>
@@ -355,7 +400,7 @@ export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDia
                     </FormItem>
                   )}
                 />
-                <Button type="submit">Add Field</Button>
+                <Button type="submit">{text.submitText}</Button>
               </form>
             </Form>
           </TabsContent>
@@ -364,3 +409,4 @@ export function AddDatasetFieldDialog({ tables, onAddField }: AddDatasetFieldDia
     </Dialog>
     )
 }
+
