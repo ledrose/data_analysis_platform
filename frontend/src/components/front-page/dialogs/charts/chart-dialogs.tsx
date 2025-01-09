@@ -6,11 +6,21 @@ import { ChartForm, DatasetNameWithId, formSchema, FormValues } from "./chart-fo
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Chart } from "@backend/charts/entities/chart.entity";
-import { useAddChartApi } from "@/api/charts";
+import { useAddChartApi, useUpdateChartApi } from "@/api/charts";
+import { useMainPageStore } from "@/_store/store";
 
-export function AddChartDialog({defaultDataset,onAddChart}: {defaultDataset?: DatasetNameWithId,onAddChart?: (data: Chart) => void}) {
+
+interface AddChartDialogProps {
+    defaultDataset?: DatasetNameWithId,
+    // onAddChart?: (data: Chart) => void,
+    children?: React.ReactNode,
+    useOpenHook?: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
+}
+
+export function AddChartDialog({defaultDataset,children, useOpenHook}: AddChartDialogProps) {
     const {sendRequest:addChart} = useAddChartApi();
-    const [open,setOpen] = useState(false);
+    const getCharts = useMainPageStore(state => state.updateChart);
+    const [open,setOpen] = useOpenHook || useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -25,7 +35,8 @@ export function AddChartDialog({defaultDataset,onAddChart}: {defaultDataset?: Da
         addChart({
             onData: (data) => {
                 setOpen(false);
-
+                getCharts();
+                // onAddChart && onAddChart(data);
             }
         })(data);
         // console.log(data)
@@ -34,9 +45,10 @@ export function AddChartDialog({defaultDataset,onAddChart}: {defaultDataset?: Da
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">
-                    <Plus className="mr-2 h-4 w-4" /> Add Chart
-                </Button>
+                {children} 
+                    {/* <Button variant="default">
+                        <Plus className="mr-2 h-4 w-4" /> Add Chart
+                    </Button> */}
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-screen">
                 <DialogHeader>
@@ -64,9 +76,11 @@ interface ChartInterface {
     datasetId: string;
 }
 
-export function UpdateChartDialog({chartInfo}: {chartInfo: ChartInterface}) {
-
-    const [open,setOpen] = useState(false);
+export function UpdateChartDialog({chartInfo, children, useOpenHook = useState(false)}: {chartInfo: ChartInterface, children?: React.ReactNode, useOpenHook?: [boolean, React.Dispatch<React.SetStateAction<boolean>>]}) {
+    const {sendRequest:updateChart} = useUpdateChartApi();
+    const getCharts = useMainPageStore(state => state.updateChart);
+    
+    const [open,setOpen] = useOpenHook;
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -74,15 +88,19 @@ export function UpdateChartDialog({chartInfo}: {chartInfo: ChartInterface}) {
     })
 
     const onSubmit = (data: FormValues) => {
-        console.log(data)
+        updateChart({onData: () => {
+            setOpen(false);
+            getCharts();
+        }})(chartInfo.id, data);
     }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">
+                {children}
+                {/* <Button variant="default">
                     <Plus className="mr-2 h-4 w-4" /> Add Chart
-                </Button>
+                </Button> */}
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-screen">
                 <DialogHeader>

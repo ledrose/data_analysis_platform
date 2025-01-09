@@ -21,16 +21,8 @@ export function DatasetsList() {
         setUpdateDataset(()=>getDatasets()());
     },[])
 
-    const handleEditDataset = (id: string) => {
-        console.log(`Edit dataset ${id}`)
-    }
-
     const handleDeleteDataset = (id: string) => {
         console.log(`Delete dataset ${id}`)
-    }
-
-    const handleCreateChart = (datasetId: string) => {
-        console.log(`Create chart from dataset ${datasetId}`)
     }
 
     return (
@@ -48,10 +40,6 @@ export function DatasetsList() {
                 <DatasetItemCard
                 key={dataset.id}
                 dataset={dataset}
-                getDatasets={getDatasets}
-                onEdit={() => handleEditDataset(dataset.id)}
-                onCreateNext={() => handleCreateChart(dataset.id)}
-                onDelete={() => handleDeleteDataset(dataset.id)}
                 />
             ))}
             </div>

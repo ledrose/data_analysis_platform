@@ -15,6 +15,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, D
 import { Button } from "../ui/button"
 import { useDeleteDatasetFieldApi, useDeleteTableApi } from "@/api/datasets"
 import { useDatasetStore } from "@/_store/store"
+import { DeleteDialog } from "../common/delete-comfirmation"
   const RelationsTable = ({relations,tables}:{relations: DatasetJoin[] | undefined,tables: SourceTable[] | undefined}) => {
     const {datasetId,updateDataset} = useDatasetStore();
     const {sendRequest} = useDeleteTableApi();
@@ -43,10 +44,13 @@ import { useDatasetStore } from "@/_store/store"
                 <TableCell></TableCell>
                 <TableCell></TableCell>
                 <TableCell>
-                    <DeleteRelationDialog
-                      relationName={baseTable.name}
+                    <DeleteDialog 
                       onDeleteRelation={() => {sendRequest({onData: updateDataset})(datasetId,baseTable.id)}}
-                    />
+                      title="Delete Relation"
+                      text={`Are you sure you want to delete the relation ${baseTable.name}? This action is irreversible and may affect other parts of your dataset.`}
+                    >
+                        <Button variant="destructive" size="sm">Delete</Button>
+                    </DeleteDialog>
                 </TableCell>
               </TableRow>
             )
@@ -62,46 +66,21 @@ import { useDatasetStore } from "@/_store/store"
                   <Button variant="outline" size="sm" onClick={() => {}} className="mr-2">
                       Edit
                     </Button>
-                    <DeleteRelationDialog
-                      relationName={relation.leftSourceField.sourceTable.name + '-' + relation.rightSourceField.sourceTable.name}
+                    <DeleteDialog 
                       onDeleteRelation={() => {sendRequest({onData: updateDataset})(datasetId,relation.leftSourceField.sourceTable.id)}}
-                    />
+                      title="Delete Relation"
+                      text={`Are you sure you want to delete the relation ${
+                        relation.leftSourceField.sourceTable.name + '-' + relation.rightSourceField.sourceTable.name
+                      }? This action is irreversible and may affect other parts of your dataset.`}
+                    >
+                        <Button variant="destructive" size="sm">Delete</Button>
+                    </DeleteDialog>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </ScrollArea>
-    )
-  }
-  
-  interface DeleteRelationDialogProps {
-    relationName: string
-    onDeleteRelation: () => void
-  }
-  
-
-  function DeleteRelationDialog({ relationName, onDeleteRelation }: DeleteRelationDialogProps) {
-    return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="destructive" size="sm">Delete</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Relation</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the relation {relationName}? This action is irreversible and may affect other parts of your dataset.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button type="submit" variant="destructive" onClick={onDeleteRelation}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     )
   }
   

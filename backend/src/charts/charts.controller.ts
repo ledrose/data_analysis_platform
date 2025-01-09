@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { AddChartDto } from './dto/add-chart.dto';
 import { Auth } from 'src/auth/auth.decorator';
 import { ChartsService } from './charts.service';
@@ -19,7 +19,7 @@ export class ChartsController {
     @Post("update/:chart_id")
     @HttpCode(HttpStatus.OK)
     async updateChart(@Param("chart_id") chartId: string,@Auth() username: string,@Body() chartDro: updateChartDto) {
-        await this.chartsService.updateChart(chartId, username, chartDro);
+        return await this.chartsService.updateChart(chartId, username, chartDro);
     }
 
     @Get(":chart_id")
@@ -32,6 +32,12 @@ export class ChartsController {
     @HttpCode(HttpStatus.OK)
     async getCharts(@Auth() user: string) {
         return await this.chartsService.getCharts(user);
+    }
+
+    @Delete(":chart_id")
+    @HttpCode(HttpStatus.OK)
+    async deleteChart(@Param("chart_id") chartId: string,@Auth() user: string) {
+        return await this.chartsService.deleteChart(chartId, user);
     }
 
 

@@ -13,6 +13,8 @@ import { useGetConnectionMetadataApi } from "@/api/connections";
 import { useExecuteDatasetQuery } from "@/api/query";
 import { useDatasetStore } from "@/_store/store";
 import { AddChartDialog } from "@/components/front-page/dialogs/charts/chart-dialogs";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 export default function DatasetPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,7 +62,11 @@ export default function DatasetPage() {
                 <TabsTrigger value="relations">Relations</TabsTrigger>
               </TabsList>
               <div className="w-auto">
-                <AddChartDialog defaultDataset={data??undefined} onAddChart={(data) => router.push(`/charts?id=${data.id}`)}/>
+                <AddChartDialog defaultDataset={data??undefined} onAddChart={(data) => router.push(`/charts?id=${data.id}`)}>
+                    <Button variant="default">
+                        <Plus className="mr-2 h-4 w-4" /> Add Chart
+                    </Button>
+                </AddChartDialog>
               </div>
             </div>
             <TabsContent value="fields">

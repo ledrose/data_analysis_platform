@@ -35,6 +35,11 @@ export class ChartsService {
         return await this.chartRepository.find({where: {datasetId}});
     }
 
+    async deleteChart(chartId: string, user: string) {
+        return await this.chartRepository.delete({id: chartId});
+    }
+
+
     async getCharts(username: string) {
         return await this.chartRepository.find(
             {where: {dataset: {connection: {user: {username}}}},
@@ -98,6 +103,7 @@ export class ChartsService {
             } ));
             const Ysaved = await this.chartAxisRepository.save(added);
         }
+        return {"message": "Chart updated"}
         // throw new NotImplementedException();
     }
 
