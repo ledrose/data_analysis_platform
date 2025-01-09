@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Plus } from 'lucide-react'
 import { useEffect } from "react";
 import { AddConnectionDialog } from "./dialogs/connections/add-connection-dialog";
+import { AddChartDialog } from "./dialogs/charts/chart-dialogs";
+import { useMainPageStore } from "@/_store/store";
 
 const mockCharts = [
   { id: 1, title: "Monthly Revenue", description: "Bar chart showing revenue by month" },
@@ -14,9 +16,11 @@ const mockCharts = [
 ]
 
 export function ChartsList() {
+    const setUpdateChart = useMainPageStore((store) => store.setUpdateChart);
     const {data,isLoading,sendRequest} = useGetChartsApi();
     useEffect(() => {
-        sendRequest()(); 
+        setUpdateChart(() => sendRequest()());
+        sendRequest()();
     },[])
     const handleAddChart = () => {
         console.log("Add new chart")
@@ -38,9 +42,11 @@ export function ChartsList() {
         <div>
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Charts</h2>
-            <Button onClick={handleAddChart}>
+            <AddChartDialog onAddChart={(_) => sendRequest()()}/>
+            
+            {/* <Button onClick={handleAddChart}>
                 <Plus className="mr-2 h-4 w-4" /> Add Chart
-            </Button>
+            </Button> */}
         </div>
         <div className="h-[170px] overflow-y-auto pr-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

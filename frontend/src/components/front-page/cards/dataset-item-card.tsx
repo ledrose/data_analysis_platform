@@ -8,6 +8,7 @@ import { useState } from "react";
 import { UpdateConnectionDialog } from "../dialogs/connections/update-connection-dialog";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { UpdateDatasetDialog } from "../dialogs/datasets/update-dataset-dialog";
 
 
 interface ConnectionCardProps {
@@ -20,13 +21,15 @@ interface ConnectionCardProps {
   
   export function DatasetItemCard({dataset, getDatasets, onEdit, onCreateNext,onDelete}: ConnectionCardProps) {
     const router = useRouter();
-    const [open,setOpen] = useState(false);
+    const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState(false);
+    const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+    const [isNextDialogOpen, setIsNextDialogOpen] = useState(false);
     const markers = ["Based on: "+dataset.connection.name];
     return (
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{dataset.name}</CardTitle>
-            <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
+            <DropdownMenu modal={false} open={isDropdownMenuOpen} onOpenChange={setIsDropdownMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <MoreHorizontal className="h-4 w-4" />
@@ -34,11 +37,18 @@ interface ConnectionCardProps {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>Edit connection</DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete}>Delete connection</DropdownMenuItem>
-                <DropdownMenuItem onClick={onCreateNext}>Create dataset</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                setIsUpdateDialogOpen(true)
+                setIsDropdownMenuOpen(false)
+              }}>Edit dataset</DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete}>Delete dataset</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                setIsNextDialogOpen(true)
+                setIsDropdownMenuOpen(false)
+              }}>Create chart</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <UpdateDatasetDialog useOpenHook={[isUpdateDialogOpen, setIsUpdateDialogOpen]} dataset={dataset} />
         </CardHeader>
         <CardContent>
           <CardDescription>{dataset.description}</CardDescription>

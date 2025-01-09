@@ -36,11 +36,10 @@ interface AddRelationDialogProps {
     datasetId: string,
     usedTables: SourceTable[],
     resetData: () => void,
-    handleAddRelation: (newRelation: any) => void,
     tablesMetadata: TableMetadataDto
 }
 
-export const AddRelationDialog = ({ table, datasetId, handleAddRelation, resetData, usedTables, tablesMetadata }: AddRelationDialogProps) => {
+export const AddRelationDialog = ({ table, datasetId, resetData, usedTables, tablesMetadata }: AddRelationDialogProps) => {
     const rightTableColumns = tablesMetadata.columns.find((column) => column.table === table)?.columns.map((column) => column.column)
     const {sendRequest:addBaseTable} = useAddBaseTableApi();
     const {sendRequest:addJoinedTable} = useAddJoinedTableApi();

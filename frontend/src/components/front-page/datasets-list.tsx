@@ -8,18 +8,10 @@ import { AddDatasetDialog } from "./dialogs/datasets/add-dataset-dialog"
 import { useGetConnectionsApi } from "@/api/connections"
 import { useMainPageStore } from "@/_store/store"
 
-const mockDatasets = [
-  { id: 1, title: "Sales Data 2023", description: "Annual sales data for analysis" },
-  { id: 2, title: "Customer Feedback", description: "Aggregated customer survey results" },
-  { id: 3, title: "Product Inventory", description: "Current stock levels across all warehouses" },
-  { id: 4, title: "Marketing Campaigns", description: "Performance metrics for all campaigns" },
-  { id: 5, title: "Employee Performance", description: "Annual employee performance reviews" },
-]
-
 export function DatasetsList() {
     const setUpdateDataset = useMainPageStore((store) => store.setUpdateDataset);
     const {data,isLoading,sendRequest:getDatasets} = useGetDatasetsApi();
-    const {data: connections,sendRequest: getConnections} = useGetConnectionsApi();
+    const {data:connections,sendRequest: getConnections} = useGetConnectionsApi();
     const useOpenHook = useState(false);
     useEffect(() => {
         getConnections()();

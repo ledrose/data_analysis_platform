@@ -5,7 +5,7 @@ import { TableMetadataDto } from "@backend/connections/dto/table-info.dto"
 import { AddRelationDialog } from "../front-page/dialogs/add-relation-dialog"
 import { SourceTable } from "@backend/source/entities/source-table.entity"
 
-const SearchSidebar = ({metadata,usedTables,datasetId, resetData, handleAddRelation}: {metadata: TableMetadataDto | null,datasetId: string, usedTables: SourceTable[], resetData: () => void,handleAddRelation: (newRelation: any) => void}) => {
+const SearchSidebar = ({metadata,usedTables,datasetId, resetData}: {metadata: TableMetadataDto | null,datasetId: string, usedTables: SourceTable[], resetData: () => void}) => {
   const [selectedTable, setSelectedTable] = useState<string | null>(null)  
   const tables = metadata?.columns.map((table) => table.table);
   const columns = new Map(metadata?.columns.map((table) => [table.table, table.columns.map((column) => column.column)]));
@@ -21,7 +21,7 @@ const SearchSidebar = ({metadata,usedTables,datasetId, resetData, handleAddRelat
               onClick={() => setSelectedTable(table)}
             >
               <span>{table}</span>
-              <AddRelationDialog table={table} datasetId={datasetId} resetData={resetData} usedTables={usedTables} handleAddRelation={handleAddRelation} tablesMetadata={metadata!}/>
+              <AddRelationDialog table={table} datasetId={datasetId} resetData={resetData} usedTables={usedTables} tablesMetadata={metadata!}/>
             </li>
           ))}
         </ul>

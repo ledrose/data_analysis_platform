@@ -2,7 +2,7 @@ import { IsString } from "class-validator";
 
 export class AddChartDto {
     @IsString()
-    dataset_id: string;
+    datasetId: string;
 
     @IsString()
     description: string;

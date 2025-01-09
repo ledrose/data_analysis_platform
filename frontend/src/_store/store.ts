@@ -24,12 +24,16 @@ interface MainPageStoreState {
     updateDataset: () => void,
     setUpdateDataset: (updateDataset: () => void) => void
     updateConnection: () => void,
-    setUpdateConnection: (updateConnection: () => void) => void
+    setUpdateConnection: (updateConnection: () => void) => void,
+    updateChart: () => void,
+    setUpdateChart: (updateChart: () => void) => void
 }
 
 export const useMainPageStore = create<MainPageStoreState>()((set) => ({
     updateDataset: () => {},
     setUpdateDataset: (updateDataset: () => void) => set({updateDataset}),
     updateConnection: () => {},
-    setUpdateConnection: (updateConnection: () => void) => set({updateConnection})
+    setUpdateConnection: (updateConnection: () => void) => set({updateConnection}),
+    updateChart: () => {},
+    setUpdateChart: (updateChart: () => void) => set({updateChart})
 }))

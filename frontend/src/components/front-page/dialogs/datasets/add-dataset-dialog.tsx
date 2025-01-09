@@ -28,7 +28,7 @@ export function AddDatasetDialog({useOpenHook,defaultConnection}: {getDatasets: 
                     <DialogClose asChild>
                         <Button variant="secondary">Cancel</Button>
                     </DialogClose>
-                    <Button form="add-connection-form" type="submit">Submit</Button>
+                    <Button form="add-dataset-form" type="submit">Submit</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

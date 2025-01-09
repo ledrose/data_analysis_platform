@@ -6,45 +6,54 @@ import { Textarea } from "@/components/ui/textarea";
 import React, { useEffect } from "react";
 import { Select, SelectContent,SelectTrigger, SelectItem, SelectValue } from "@/components/ui/select";
 import { useGetConnectionMetadataApi, useGetConnectionsApi } from "@/api/connections";
+import { useGetDatasetsApi } from "@/api/datasets";
+
 
 export type FormValues = z.infer<typeof formSchema>
 
-export interface ConnectionNameWithId {
+export interface DatasetNameWithId {
     id: string,
     name: string
 }
 
-
 export const formSchema = z.object({
     name: z.string().min(1),
     description: z.string(),
-    connectionId: z.string().min(1),
+    datasetId: z.string().min(1),
 })
 
-export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseFormReturn<FormValues>, onSubmit: (values: FormValues) => void, defaultConnection: ConnectionNameWithId | undefined, type: "add" | "update"}) {
-    const {data: connections, isLoading, sendRequest: getConnections} = useGetConnectionsApi();
-    if (!defaultConnection) {
-        defaultConnection = connections?.[0]
+interface DatasetFormProps {
+    form: UseFormReturn<FormValues>
+    onSubmit: (values: FormValues) => void
+    defaultDataset?: DatasetNameWithId
+    type: "add" | "update"
+}
+
+export function ChartForm({form,onSubmit,defaultDataset, type}: DatasetFormProps) {
+    
+    const {data: datasets, isLoading, sendRequest: getDatasets} = useGetDatasetsApi();
+    if (!defaultDataset) {
+        defaultDataset = datasets?.[0]
     }
-    form.setValue("connectionId", defaultConnection?.id || "");
+    form.setValue("datasetId", defaultDataset?.id || "");
     useEffect(() => {
-        getConnections()();
+        getDatasets()();
     },[])
     return (
         <Form {...form}>
-        <form id={type+"-dataset-form"} onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form id={type+"-chart-form"} onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="col-span-full">
             <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Dataset Name</FormLabel>
+                    <FormLabel>Chart Name</FormLabel>
                     <FormControl>
-                    <Input placeholder="My Dataset" {...field} />
+                    <Input placeholder="My Chart" {...field} />
                     </FormControl>
                     <FormDescription>
-                    A unique name for this dataset .
+                    A unique name for this chart .
                     </FormDescription>
                     <FormMessage />
                 </FormItem>
@@ -60,7 +69,7 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                     <Textarea
-                        placeholder="Optional description for this dataset"
+                        placeholder="Optional description for this chart"
                         {...field}
                     />
                     </FormControl>
@@ -69,24 +78,24 @@ export function DatasetForm({form,onSubmit,defaultConnection, type}: {form: UseF
                 )}
             />
             </div>
-            {!isLoading && connections &&
+            {!isLoading && datasets &&
                 <div className="col-span-full">
                 <FormField
                     control={form.control}
-                    name="connectionId"
+                    name="datasetId"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Connection</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={defaultConnection?.id}>
+                        <FormLabel>Dataset</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={defaultDataset?.id}>
                         <FormControl>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a database type" />
+                                <SelectValue placeholder="Select a dataset" />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {connections && connections.map((connection) => (
-                            <SelectItem key={connection.id} value={connection.id}>
-                                {connection.name}
+                            {datasets && datasets.map((dataset) => (
+                            <SelectItem key={dataset.id} value={dataset.id}>
+                                {dataset.name}
                             </SelectItem>
                             ))}
                         </SelectContent>

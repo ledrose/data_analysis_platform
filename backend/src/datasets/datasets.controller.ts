@@ -5,6 +5,7 @@ import { Auth } from 'src/auth/auth.decorator';
 import { DatasetsGuard } from './datasets.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UpdateConnectionDto } from 'src/connections/dto/update-connection.dto';
+import { UpdateDatasetDto } from './dto/update-dataset.dto';
 
 @Controller('datasets')
 export class DatasetsController {
@@ -34,7 +35,7 @@ export class DatasetsController {
     @UseGuards(DatasetsGuard)
     @Post('update/:dataset_id')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('dataset_id') datasetId: string, @Body() datasetDto: UpdateConnectionDto, @Body() dataset_dto: AddDatasetDto, @Auth() user: string) {
+    async update(@Param('dataset_id') datasetId: string, @Body() datasetDto: UpdateDatasetDto, @Auth() user: string) {
         return this.datasetsService.update(datasetId, datasetDto,user);
     }
 

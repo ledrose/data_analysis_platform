@@ -12,10 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGetConnectionMetadataApi } from "@/api/connections";
 import { useExecuteDatasetQuery } from "@/api/query";
 import { useDatasetStore } from "@/_store/store";
-// import { TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-
-// type EditorMode = 'relations' | 'fields'
-
+import { AddChartDialog } from "@/components/front-page/dialogs/charts/chart-dialogs";
 export default function DatasetPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,18 +49,20 @@ export default function DatasetPage() {
     }
   },[data?.connectionId]);
 
-  const handleAddRelation = (newRelation: any) => {
-    
-  }
   return (
     <>
         <ResizablePanelGroup direction="vertical" className="rounded-lg border">
           <ResizablePanel className="!overflow-y-auto">
           <Tabs defaultValue="fields">
-            <TabsList className="grid grid-cols-2 items-center mb-4 w-[200px]">
-              <TabsTrigger value="fields">Fields</TabsTrigger>
-              <TabsTrigger value="relations">Relations</TabsTrigger>
-            </TabsList>
+            <div className="flex justify-between w-100">
+              <TabsList className="grid grid-cols-2 items-center mb-4 w-[200px]">
+                <TabsTrigger value="fields">Fields</TabsTrigger>
+                <TabsTrigger value="relations">Relations</TabsTrigger>
+              </TabsList>
+              <div className="w-auto">
+                <AddChartDialog defaultDataset={data??undefined} onAddChart={(data) => router.push(`/charts?id=${data.id}`)}/>
+              </div>
+            </div>
             <TabsContent value="fields">
               <div className="flex-1 overflow-hidden">
                 <h2 className="text-xl font-semibold mb-2">Dataset Fields</h2>
@@ -72,7 +71,7 @@ export default function DatasetPage() {
             </TabsContent>
             <TabsContent value="relations">
               <div className="flex mb-6 overflow-hidden">
-                <SearchSidebar metadata={metadata} datasetId={datasetId} usedTables={data?.sourceTables ?? []} resetData={resetData} handleAddRelation={handleAddRelation}/>
+                <SearchSidebar metadata={metadata} datasetId={datasetId} usedTables={data?.sourceTables ?? []} resetData={resetData}/>
                 <div className="flex-1 ml-6">
                   <h2 className="text-xl font-semibold mb-2">Table Relations</h2>
                   <RelationsTable tables={data?.sourceTables} relations={data?.joins} />

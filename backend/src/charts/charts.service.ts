@@ -20,7 +20,7 @@ export class ChartsService {
     ) {}
     
     async createChart(addChartDto: AddChartDto, username: string) {
-        const datasetId = (await this.datasetService.get_dataset(addChartDto.dataset_id, username))?.id;
+        const datasetId = (await this.datasetService.get_dataset(addChartDto.datasetId, username))?.id;
         if (!datasetId) {
             throw new BadRequestException('Dataset not found');
         }

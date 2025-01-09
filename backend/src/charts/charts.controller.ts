@@ -13,7 +13,7 @@ export class ChartsController {
     @Post("create")
     @HttpCode(HttpStatus.CREATED)
     async createChart(@Body() addChartDto: AddChartDto, @Auth() user: string) {
-        this.chartsService.createChart(addChartDto, user);      
+        return await this.chartsService.createChart(addChartDto, user);      
     }
 
     @Post("update/:chart_id")
