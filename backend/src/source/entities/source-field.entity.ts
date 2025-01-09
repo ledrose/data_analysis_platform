@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { SourceTable } from "./source-table.entity";
 import { DatasetJoin } from "src/datasets/entities/dataset-join.entity";
+import { DatasetField } from "src/datasets/entities/dataset-field.entity";
 
 @Entity()
 @Unique('upsert_name_id', ['name', 'sourceTableId'])
@@ -13,6 +14,9 @@ export class SourceField {
 
     @Column()
     dataType: string
+
+    @ManyToMany(() => DatasetField, (datasetField) => datasetField.sourceFields)
+    datasetFields: DatasetField[]
 
     @JoinColumn({name: 'sourceTableId'})
     @ManyToOne(() => SourceTable, (sourceTable) => sourceTable.fields,{onDelete: "CASCADE"})

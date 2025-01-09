@@ -7,10 +7,11 @@ import React, { useEffect, useState } from "react";
 import { useCreateConnectionApi, useGetConnectionsApi } from "@/api/connections";
 import { ConnectionNameWithId, DatasetForm, formSchema, FormValues } from "./dataset-form";
 import { useCreateDatasetApi, useGetDatasetsApi } from "@/api/datasets";
+import { useMainPageStore } from "@/_store/store";
 
 type ReturnGetDatasetType = ReturnType<typeof useGetDatasetsApi>['sendRequest']
 
-export function AddDatasetDialog({getDatasets, useOpenHook,defaultConnection}: {getDatasets: ReturnGetDatasetType, useOpenHook: [boolean, React.Dispatch<React.SetStateAction<boolean>>],defaultConnection?: ConnectionNameWithId}) {
+export function AddDatasetDialog({useOpenHook,defaultConnection}: {getDatasets: ReturnGetDatasetType, useOpenHook: [boolean, React.Dispatch<React.SetStateAction<boolean>>],defaultConnection?: ConnectionNameWithId}) {
     const [open,setOpen] = useOpenHook;
 
     return (
@@ -22,7 +23,7 @@ export function AddDatasetDialog({getDatasets, useOpenHook,defaultConnection}: {
                         Add a new dataset using this form.
                     </DialogDescription>
                 </DialogHeader>
-                <AddDatasetForm setOpen={setOpen} getDatasets={getDatasets}/>
+                <AddDatasetForm setOpen={setOpen}/>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button variant="secondary">Cancel</Button>
@@ -38,7 +39,8 @@ export function AddDatasetDialog({getDatasets, useOpenHook,defaultConnection}: {
 
 
 
-function AddDatasetForm({setOpen,getDatasets, defaultConnection}: {setOpen: React.Dispatch<React.SetStateAction<boolean>>, getDatasets: ReturnGetDatasetType, defaultConnection?: ConnectionNameWithId} ) {
+function AddDatasetForm({setOpen,defaultConnection}: {setOpen: React.Dispatch<React.SetStateAction<boolean>>, defaultConnection?: ConnectionNameWithId} ) {
+    const getDatasets = useMainPageStore(state => state.updateDataset);
     const {isLoading,err,sendRequest} = useCreateDatasetApi();
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -53,7 +55,7 @@ function AddDatasetForm({setOpen,getDatasets, defaultConnection}: {setOpen: Reac
         sendRequest({
             onData: (_) => {
                 setOpen(false);
-                getDatasets()();
+                getDatasets();
             }
         })(values);
     }

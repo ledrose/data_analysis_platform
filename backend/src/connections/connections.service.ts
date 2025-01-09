@@ -117,10 +117,10 @@ export class ConnectionsService implements OnModuleDestroy{
     }
 
     async updateConnection(connectionId: string, connectionDto: UpdateConnectionDto, username: string) {
-        if (!this.getConnection(connectionId, username)) {
+        if (!await this.getConnection(connectionId, username)) {
             throw new ForbiddenException("You don't have access to this connection");
         }
-        this.closeConnection(connectionId);
+        await this.closeConnection(connectionId);
         const connection = await this.connectionRepository.preload({
             id: connectionId,
             ...connectionDto

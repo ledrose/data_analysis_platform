@@ -337,7 +337,7 @@ function FieldForm({children, form, onSubmit, tables,openHook:[open, setOpen],te
                         <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!form.getValues("sourceTable")}>
                         <FormControl>
                             <SelectTrigger>
-                            <SelectValue placeholder="Select a database type" />
+                            <SelectValue placeholder="Select field of right table" />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>

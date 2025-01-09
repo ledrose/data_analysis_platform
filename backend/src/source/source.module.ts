@@ -5,10 +5,11 @@ import { SourceTable } from './entities/source-table.entity';
 import { SourceField } from './entities/source-field.entity';
 import { ConnectionsModule } from 'src/connections/connections.module';
 import { DatasetsModule } from 'src/datasets/datasets.module';
+import { DatasetField } from 'src/datasets/entities/dataset-field.entity';
 
 @Module({
   providers: [SourceService],
-  imports: [TypeOrmModule.forFeature([SourceTable,SourceField]),ConnectionsModule,forwardRef(() => DatasetsModule)],
+  imports: [TypeOrmModule.forFeature([SourceTable,SourceField,DatasetField]),ConnectionsModule,forwardRef(() => DatasetsModule)],
   controllers: [],
   exports: [SourceService]
 })

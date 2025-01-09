@@ -58,8 +58,18 @@ export class DatasetField {
     @Column({nullable: true})
     formula: string
 
-    @JoinTable()
+    @JoinTable({
+        name: "dataset_field_source_field",
+        joinColumn: {
+            name: "datasetFieldId",
+            referencedColumnName: "id"
+        },
+        inverseJoinColumn: {
+            name: "sourceFieldId",
+            referencedColumnName: "id"
+        }
+    })
     // @JoinColumn({name: 'sourceFieldId'})
-    @ManyToMany(() => SourceField,{cascade: true})
+    @ManyToMany(() => SourceField,(sourceField) => sourceField.datasetFields, {cascade: true})
     sourceFields: SourceField[];
 }

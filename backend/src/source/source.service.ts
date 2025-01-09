@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { SourceTable } from './entities/source-table.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SourceField } from './entities/source-field.entity';
@@ -8,6 +8,7 @@ import { ColumnInfo, ConnectionMetadataService, TableColumnInfo } from 'src/conn
 import { Column } from 'knex-schema-inspector/dist/types/column';
 import { table } from 'console';
 import { DatasetsService } from 'src/datasets/datasets.service';
+import { DatasetField } from 'src/datasets/entities/dataset-field.entity';
 
 @Injectable()
 export class SourceService {
@@ -16,6 +17,9 @@ export class SourceService {
         private readonly sourceTableRepository: Repository<SourceTable>,
         @InjectRepository(SourceField)
         private readonly sourceFieldRepository: Repository<SourceField>,
+        @InjectRepository(DatasetField)
+        private readonly datasetFieldRepository: Repository<DatasetField>,
+        private readonly dataSource: DataSource,
         private readonly connectionMetadataService: ConnectionMetadataService,
         private readonly datasetService: DatasetsService,
     ) {}
@@ -124,8 +128,9 @@ export class SourceService {
                         leftSourceField: {
                             sourceTable: true
                         }
-                    }
-                }
+                    },
+                    datasetFields: true
+                },
             }
         });
 
@@ -136,8 +141,22 @@ export class SourceService {
         if (nonEmptyRightJoins.length > 0) {
             throw new BadRequestException(`Table ${table.name} has non resolved dependency on ${nonEmptyRightJoins.map((field) => field.rightJoins.map((join) => join.leftSourceField.sourceTable.name)).flat()}`);
         }
-        
-        return await this.sourceTableRepository.delete({id: table.id},);
+        // console.log("Ohh")
+        const runner = this.dataSource.createQueryRunner()
+        await runner.connect();
+        await runner.startTransaction();
+        try {
+            await runner.manager.remove(table.fields.map((field) => field.datasetFields).flat());
+            const res = await runner.manager.delete(SourceTable,{id: table.id});
+            // await this.datasetFieldRepository.remove(table.fields.map((field) => field.datasetFields).flat());
+            // const res = await this.sourceTableRepository.delete({id: table.id});
+            await runner.commitTransaction();
+            return res;
+        } catch (error) {
+            await runner.rollbackTransaction();
+            throw error;
+        }
+
     }
 
 }

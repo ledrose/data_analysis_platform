@@ -6,6 +6,7 @@ import { use, useEffect, useState } from "react"
 import { DatasetItemCard } from "./cards/dataset-item-card"
 import { AddDatasetDialog } from "./dialogs/datasets/add-dataset-dialog"
 import { useGetConnectionsApi } from "@/api/connections"
+import { useMainPageStore } from "@/_store/store"
 
 const mockDatasets = [
   { id: 1, title: "Sales Data 2023", description: "Annual sales data for analysis" },
@@ -16,6 +17,7 @@ const mockDatasets = [
 ]
 
 export function DatasetsList() {
+    const setUpdateDataset = useMainPageStore((store) => store.setUpdateDataset);
     const {data,isLoading,sendRequest:getDatasets} = useGetDatasetsApi();
     const {data: connections,sendRequest: getConnections} = useGetConnectionsApi();
     const useOpenHook = useState(false);
@@ -24,10 +26,8 @@ export function DatasetsList() {
     },[])
     useEffect(() => {
         getDatasets()();
+        setUpdateDataset(()=>getDatasets()());
     },[])
-    const handleAddDataset = () => {
-        console.log("Add new dataset")
-    }
 
     const handleEditDataset = (id: string) => {
         console.log(`Edit dataset ${id}`)

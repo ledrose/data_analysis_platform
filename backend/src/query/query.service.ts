@@ -122,6 +122,7 @@ export class QueryService {
 
     async buildQuery(knex: Knex, fields: DatasetField[], joins: DatasetJoin[], groupBy: DatasetField[], offset?: number, limit?: number) {
         const requiredTables = [...new Set(fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
+        console.log(requiredTables);
         return QueryBuilderCustom.new(knex)
             .addDatasetFields(fields)
             .fromRequiredTables(requiredTables, joins)

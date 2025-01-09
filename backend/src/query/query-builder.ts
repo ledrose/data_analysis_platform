@@ -54,7 +54,6 @@ export class QueryBuilderCustom {
             //Здесь мы пытаемся сделать идиотское дерево из joinов и добавляем только те у которых одной вершины нету в списке
             //Если два поиска закончились неудачно или мы подключили все таблицы, то выходим из цикла.
             const joinedTables = [requiredTables[0]];
-            // console.log(joinedTables,requiredTables)
             let tempVariable = 0;
             let el: DatasetJoin;
             while (joinedTables.length<requiredTables.length) {
@@ -74,7 +73,7 @@ export class QueryBuilderCustom {
                 if (el!=undefined) {
                     joinedTables.push(el.rightSourceField.sourceTable.name);
                     this.addJoinFunction(knexBuilder)[el.type.toString()](
-                        el.rightSourceField.sourceTable.name,
+                        el.leftSourceField.sourceTable.name,
                         `${el.leftSourceField.sourceTable.name}.${el.leftSourceField.name}`,
                         `${el.rightSourceField.sourceTable.name}.${el.rightSourceField.name}`
                     )

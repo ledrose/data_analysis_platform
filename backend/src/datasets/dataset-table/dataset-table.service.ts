@@ -51,7 +51,7 @@ export class DatasetTableService {
                 aggregateType: AggregateType.NONE
             }
         });
-        this.datasetFieldService.addFields(datasetId, username, addFieldDto);
+        return await this.datasetFieldService.addFields(datasetId, username, addFieldDto);
     }
 
     async addJoinedTable(datasetId: string, username: string, addTableDto: AddJoinedTableDto) {

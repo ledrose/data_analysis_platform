@@ -3,12 +3,18 @@ import { ConnectionItemCard, ItemCard } from "./cards/connection-item-card"
 import { useEffect } from "react"
 import { AddConnectionDialog } from "./dialogs/connections/add-connection-dialog"
 import { useGetDatasetsApi } from "@/api/datasets"
+import { useMainPageStore } from "@/_store/store"
+import { set } from "zod"
 
 export function ConnectionsList() {
+    const setUpdateConnection = useMainPageStore((store) => store.setUpdateConnection);
     const {data,isLoading,sendRequest:getConnections} = useGetConnectionsApi();
     const {sendRequest:getDatasets} = useGetDatasetsApi();
     const {sendRequest:deleteConnection} = useDeleteConnectionApi();
     useEffect(() => {
+        setUpdateConnection(() => () => {
+            getConnections()();
+        })
         getConnections()();
     },[])
 

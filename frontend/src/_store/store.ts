@@ -19,3 +19,17 @@ export const useDatasetStore = create<DatasetState>()((set) => ({
     setUpdateDataset: (updateDataset: () => void) => set({updateDataset}),
     setMetadata: (metadata: TableMetadataDto | null) => set({metadata})
 }))
+
+interface MainPageStoreState {
+    updateDataset: () => void,
+    setUpdateDataset: (updateDataset: () => void) => void
+    updateConnection: () => void,
+    setUpdateConnection: (updateConnection: () => void) => void
+}
+
+export const useMainPageStore = create<MainPageStoreState>()((set) => ({
+    updateDataset: () => {},
+    setUpdateDataset: (updateDataset: () => void) => set({updateDataset}),
+    updateConnection: () => {},
+    setUpdateConnection: (updateConnection: () => void) => set({updateConnection})
+}))
