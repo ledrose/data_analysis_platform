@@ -49,8 +49,9 @@ export class QueryBuilderCustom {
     }
     fromRequiredTables(requiredTables: string[], joins: DatasetJoin[]) {
         this.operations.push((knexBuilder: Knex.QueryBuilder) => {
-            knexBuilder = knexBuilder.from(requiredTables[0]);
             
+            knexBuilder = knexBuilder.from(requiredTables[0]);
+            console.log(requiredTables)
             //Здесь мы пытаемся сделать идиотское дерево из joinов и добавляем только те у которых одной вершины нету в списке
             //Если два поиска закончились неудачно или мы подключили все таблицы, то выходим из цикла.
             const joinedTables = [requiredTables[0]];
@@ -71,7 +72,7 @@ export class QueryBuilderCustom {
                 el = joins.find((join) => !joinedTables.includes(join.leftSourceField.sourceTable.name)
                     && joinedTables.includes(join.rightSourceField.sourceTable.name));
                 if (el!=undefined) {
-                    joinedTables.push(el.rightSourceField.sourceTable.name);
+                    joinedTables.push(el.leftSourceField.sourceTable.name);
                     this.addJoinFunction(knexBuilder)[el.type.toString()](
                         el.leftSourceField.sourceTable.name,
                         `${el.leftSourceField.sourceTable.name}.${el.leftSourceField.name}`,

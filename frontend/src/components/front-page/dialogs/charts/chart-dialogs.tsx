@@ -12,12 +12,12 @@ import { useMainPageStore } from "@/_store/store";
 
 interface AddChartDialogProps {
     defaultDataset?: DatasetNameWithId,
-    // onAddChart?: (data: Chart) => void,
+    onAddChart?: (data: Chart) => void,
     children?: React.ReactNode,
     useOpenHook?: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
 }
 
-export function AddChartDialog({defaultDataset,children, useOpenHook}: AddChartDialogProps) {
+export function AddChartDialog({defaultDataset,children, useOpenHook, onAddChart}: AddChartDialogProps) {
     const {sendRequest:addChart} = useAddChartApi();
     const getCharts = useMainPageStore(state => state.updateChart);
     const [open,setOpen] = useOpenHook || useState(false);
@@ -36,7 +36,7 @@ export function AddChartDialog({defaultDataset,children, useOpenHook}: AddChartD
             onData: (data) => {
                 setOpen(false);
                 getCharts();
-                // onAddChart && onAddChart(data);
+                onAddChart && onAddChart(data);
             }
         })(data);
         // console.log(data)
