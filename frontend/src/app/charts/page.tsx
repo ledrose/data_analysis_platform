@@ -1,5 +1,5 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import PlaceholderChart from '@/components/chart/placeholder'
 import FieldList from '@/components/chart/field-list'
@@ -7,52 +7,70 @@ import {DndContext, DragEndEvent, DragStartEvent, useDraggable, useDroppable} fr
 import { Button } from '@/components/ui/button'
 import { Cross, Delete, Settings } from 'lucide-react'
 import { set } from 'react-hook-form'
+import { useGetDatasetFieldsApi } from '@/api/datasets'
+import { useDeleteChartPropsApi, useGetChartApi, useUpdateChartPropsApi } from '@/api/charts'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { ChartPropType } from '@backend/charts/dto/update-chart-prop.dto'
+
+
+export enum AxisType {
+  X = "x",
+  Y = "y"
+}
+
 
 interface Field {
   id: number
-  label: string
-  fieldName: string
+  name: string
   type: string
-  aggregateType?: string
+  aggregateType: string
 }
 
-// const testFieldsBasic = [
-//   { id: 1, label: 'Name', fieldName: 'name', type: 'text', aggregateType: 'none' },
-//   { id: 2, label: 'Description', fieldName: 'description', type: 'text', aggregateType: 'none' },
-//   { id: 3, label: 'Dataset', fieldName: 'dataset', type: 'text', aggregateType: 'none' },
-//   { id: 4, label: 'Type', fieldName: 'type', type: 'text', aggregateType: 'none' },
-// ]
-
-// const testFieldsAggregated = [
-//   {id: 5, label: 'UserId', fieldName: 'userId', type: 'number', aggregateType: 'count'},
-//   {id: 6, label: 'Name', fieldName: 'name', type: 'text', aggregateType: 'uniquecount'},
-// ]
 
 export default function ChartPage() {
-    const fields = [
-      {id: 1, label: 'Name', fieldName: 'name', type: 'text', aggregateType: 'none' },
-      {id: 2, label: 'Description', fieldName: 'description', type: 'text', aggregateType: 'none' },
-      {id: 3, label: 'Dataset', fieldName: 'dataset', type: 'text', aggregateType: 'none' },
-      {id: 4, label: 'Type', fieldName: 'type', type: 'text', aggregateType: 'none' },
-      {id: 5, label: 'UserId', fieldName: 'userId', type: 'number', aggregateType: 'count'},
-      {id: 6, label: 'Name', fieldName: 'name', type: 'text', aggregateType: 'uniquecount'},
-    ]
+    const router = useRouter();
+    const {data:chart,sendRequest: getChart} = useGetChartApi();
+    const {sendRequest: updateChartProps} = useUpdateChartPropsApi()
+    const {sendRequest: deleteChartProps} = useDeleteChartPropsApi()
+    const searchParams = useSearchParams();
+    const chartId = searchParams.get('id') as string;
+    useEffect(() => {
+      getChart({
+        onData: (data) => {
+          setChartState({
+            xAxis: data.axes.filter((axis) => axis.type === AxisType.X).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
+            yAxis: data.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
+            filter: data.filters.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
+            sort: data.sorts.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
+          })
+        },
+        onErr: () => router.push('/')
+      })(chartId);
+    },[]);
+    const fields = chart?.dataset.fields as Field[] || [];
     const aggregateFields = useMemo(() => fields.filter((field) => field.aggregateType != 'none'),[fields]);
     const basicFields = useMemo(() => fields.filter((field) => field.aggregateType === 'none'),[fields]);
     const [chartState,setChartState] = useState({
       xAxis: [] as Field[],
       yAxis: [] as Field[],
+      filter: [] as Field[],
+      sort: [] as Field[]
     } as Record<string, Field[]>);
     const [isBasicDragged, setIsBasicDragged] = useState(false)
     const [isAggregatedDragged, setIsAggregatedDragged] = useState(false)
 
 
     const onDeleteFromAttrZone = (zoneId: string,id: number) => {
-      setChartState((prevState) => {
-        const nextState = structuredClone(prevState);
-        nextState[zoneId] = nextState[zoneId].filter((field) => field.id !== id);
-        return nextState
-      })
+      deleteChartProps({
+        onData: () => {
+          setChartState((prevState) => {
+            const nextState = structuredClone(prevState);
+            nextState[zoneId] = nextState[zoneId].filter((field) => field.id !== id);
+            return nextState
+          })
+        },
+      })(chartId,zoneId as ChartPropType,id);
     }
     const handleDragEnd = (event:DragEndEvent) => {
       console.log(event)
@@ -60,12 +78,17 @@ export default function ChartPage() {
       setIsAggregatedDragged(false)
       if (event.over && event.over.id) {
         if (event.active.data.current?.fieldType === event.over.data.current?.fieldType) {
-          setChartState((prevState) => {
-            const nextState = structuredClone(prevState);
-            const field = fields.find((field) => field.id.toString() === event.active.id.toString());
-            if (field) nextState[event.over!.id].push(field);
-            return nextState
-           })
+          updateChartProps({
+            onData: () => {
+              setChartState((prevState) => {
+                const nextState = structuredClone(prevState);
+                const field = fields.find((field) => field.id.toString() === event.active.id.toString());
+                if (field) nextState[event.over!.id].push(field);
+                return nextState
+               })
+            }
+          })(chartId, event.over.id.toString() as ChartPropType,{id: event.active.id as number})
+          
         }
       }
     }
@@ -91,6 +114,8 @@ export default function ChartPage() {
               <div className="w-1/2">
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="xAxis" name="xAxis" fieldType='normal' fields={chartState['xAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isAggregatedDragged} id="yAxis" name="yAxis" fieldType='aggregate' fields={chartState['yAxis']}/>
+                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="sort" name="Sort" fieldType='normal' fields={chartState['sort']}/>
+                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="filter" name="Filter" fieldType='normal' fields={chartState['filter']}/>
               </div>
             </div>
           </Card>
@@ -126,7 +151,7 @@ function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}:
     }
   });
   const color = {color: isOver ? 'bg-primary' : 'bg-muted'}
-  const draggedStyle = isItemDragged ?  {border: '1px dashed #ccc'} : {border: '1px solid #ccc'}
+  const draggedStyle = isItemDragged ?  {border: '1px dashed #ccc', backgroundColor: 'green'} : {border: '1px solid #ccc'}
   return (
     <div className="mb-4">
       <h3 className="font-semibold mb-2">{name}</h3>
@@ -153,7 +178,7 @@ function DraggableDatasetCard({field}: {field:Field}) {
 
   return (
     <button ref={setNodeRef} {...attributes} {...listeners} style={style} className={' text-secondary-foreground p-2 mb-2 w-full rounded flex items-center justify-between shadow-sm '+color}>
-      <span className="font-medium">{field.label}</span>
+      <span className="font-medium">{field.name}</span>
       {/* <Button ref={setNodeRef} {...attributes} {...listeners} style={style}
         size="icon"
         variant="ghost"
@@ -169,7 +194,7 @@ function DraggableDatasetCard({field}: {field:Field}) {
 function DatasetCard({field, onDelete}: {field:Field, onDelete?: (id: number) => void}) {
   return (
     <div className={' text-secondary-foreground p-2 mb-2 w-full rounded flex items-center justify-between shadow-sm bg-secondary'}>
-      <span className="font-medium">{field.label}</span>
+      <span className="font-medium">{field.name}</span>
       <Button
         size="icon"
         variant="ghost"

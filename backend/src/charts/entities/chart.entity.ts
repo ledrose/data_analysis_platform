@@ -1,6 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ChartAxis } from "./chart-axis.entity";
 import { Dataset } from "src/datasets/entities/dataset.entity";
+import { ChartSort } from "./sort.entity";
+import { ChartFilter } from "./filter.entity";
 
 
 export enum ChartType {
@@ -30,5 +32,10 @@ export class Chart {
     @OneToMany(() => ChartAxis, (axis) => axis.chart)
     axes: ChartAxis[];
 
+    @OneToMany(() => ChartSort, (sort) => sort.chart)
+    sorts: ChartSort[]
 
+    @OneToMany(() => ChartFilter, (sort) => sort.chart)
+    filters: ChartFilter[]
+    
 }

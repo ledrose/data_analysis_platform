@@ -3,6 +3,7 @@ import { AddChartDto } from './dto/add-chart.dto';
 import { Auth } from 'src/auth/auth.decorator';
 import { ChartsService } from './charts.service';
 import { updateChartDto } from './dto/update-chart.dto';
+import { ChartPropType, UpdateChartPropDto } from './dto/update-chart-prop.dto';
 
 @Controller('charts')
 export class ChartsController {
@@ -40,5 +41,16 @@ export class ChartsController {
         return await this.chartsService.deleteChart(chartId, user);
     }
 
+    @Post(":chart_id/props")
+    @HttpCode(HttpStatus.OK)
+    async updateChartPropss(@Param("chart_id") chartId: string, @Body() propDto: UpdateChartPropDto, @Auth() user: string) {
+        return await this.chartsService.updateChartProps(chartId, propDto.chartPropType, user, propDto);
+    }
+
+    @Delete(":chart_id/props/:type/:id")
+    async deleteChartProps(@Param("chart_id") chartId: string, @Param("type") type: ChartPropType, @Param("id") fieldId: number) {
+        return await this.chartsService.deleteChartProps(chartId, type, fieldId);
+    }
 
 }
+

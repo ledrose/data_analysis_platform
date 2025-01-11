@@ -14,10 +14,4 @@ export class updateChartDto {
     @IsOptional()
     @IsString()
     type?: string;
-    @IsOptional()
-    @Type(type => String)
-    xAxis?: [string];
-    @IsOptional()
-    @Type(type => String)
-    yAxis?: [string];
 }
