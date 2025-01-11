@@ -21,10 +21,6 @@ export function DatasetsList() {
         setUpdateDataset(()=>getDatasets()());
     },[])
 
-    const handleDeleteDataset = (id: string) => {
-        console.log(`Delete dataset ${id}`)
-    }
-
     return (
         <div>
         <div className="flex justify-between items-center mb-4">
