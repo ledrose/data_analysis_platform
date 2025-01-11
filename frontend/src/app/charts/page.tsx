@@ -12,6 +12,7 @@ import { useDeleteChartPropsApi, useGetChartApi, useUpdateChartPropsApi } from '
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { ChartPropType } from '@backend/charts/dto/update-chart-prop.dto'
+import { useExecuteChartQuery } from '@/api/query'
 
 
 export enum AxisType {
@@ -33,6 +34,7 @@ export default function ChartPage() {
     const {data:chart,sendRequest: getChart} = useGetChartApi();
     const {sendRequest: updateChartProps} = useUpdateChartPropsApi()
     const {sendRequest: deleteChartProps} = useDeleteChartPropsApi()
+    const {data:chartData, sendRequest: executeChart} = useExecuteChartQuery();
     const searchParams = useSearchParams();
     const chartId = searchParams.get('id') as string;
     useEffect(() => {
@@ -57,6 +59,12 @@ export default function ChartPage() {
       filter: [] as Field[],
       sort: [] as Field[]
     } as Record<string, Field[]>);
+    useEffect(() => {
+      if (chartState.xAxis.length === 0 || chartState.yAxis.length === 0) return
+      executeChart({
+        onData: console.log,
+      })(chartId);
+    },[chartState])
     const [isBasicDragged, setIsBasicDragged] = useState(false)
     const [isAggregatedDragged, setIsAggregatedDragged] = useState(false)
 
@@ -77,7 +85,7 @@ export default function ChartPage() {
       setIsBasicDragged(false)
       setIsAggregatedDragged(false)
       if (event.over && event.over.id) {
-        if (event.active.data.current?.fieldType === event.over.data.current?.fieldType) {
+        if (event.over.data.current?.fieldType === "any" || event.active.data.current?.fieldType === event.over.data.current?.fieldType) {
           updateChartProps({
             onData: () => {
               setChartState((prevState) => {
@@ -94,10 +102,13 @@ export default function ChartPage() {
     }
 
     const handleDragStart = (event:DragStartEvent) => {
-      if (fields.map((field) => field.id.toString()).includes(event.active.id.toString())) {
+      if (basicFields.map((field) => field.id.toString()).includes(event.active.id.toString())) {
         setIsBasicDragged(true)
+      } else if (aggregateFields.map((field) => field.id.toString()).includes(event.active.id.toString())) {
+        setIsAggregatedDragged(true)
       } else {
         setIsAggregatedDragged(true)
+        setIsBasicDragged(true)
       }
     }
     return (
@@ -114,13 +125,13 @@ export default function ChartPage() {
               <div className="w-1/2">
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="xAxis" name="xAxis" fieldType='normal' fields={chartState['xAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isAggregatedDragged} id="yAxis" name="yAxis" fieldType='aggregate' fields={chartState['yAxis']}/>
-                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="sort" name="Sort" fieldType='normal' fields={chartState['sort']}/>
+                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged || isAggregatedDragged} id="sort" name="Sort" fieldType='any' fields={chartState['sort']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="filter" name="Filter" fieldType='normal' fields={chartState['filter']}/>
               </div>
             </div>
           </Card>
           <Card className="w-2/3 p-4">
-            <PlaceholderChart />
+            <PlaceholderChart  />
           </Card>
         </div>
       </div>
@@ -144,7 +155,7 @@ export default function ChartPage() {
 }
 
 
-function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}: {id: string, fields: Field[], onDelete: (zoneId: string,id: number) => void, fieldType: "normal" | "aggregate", name: string, isItemDragged: boolean}) {
+function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}: {id: string, fields: Field[], onDelete: (zoneId: string,id: number) => void, fieldType: "normal" | "aggregate" | "any", name: string, isItemDragged: boolean}) {
   const {isOver, setNodeRef} = useDroppable({id,
     data: {
       fieldType: fieldType

@@ -1,9 +1,13 @@
+import { build } from "@hapi/joi";
 import { InternalServerErrorException } from "@nestjs/common/exceptions/internal-server-error.exception";
 import { Knex } from "knex";
+import { ChartFilter } from "src/charts/entities/filter.entity";
+import { ChartSort } from "src/charts/entities/sort.entity";
 import { AggregateType, DatasetField } from "src/datasets/entities/dataset-field.entity";
 import { DatasetJoin } from "src/datasets/entities/dataset-join.entity";
 
 export class QueryBuilderCustom {
+    
     private knex: Knex<any, any[]>;
     private operations: ((knexBuilder: Knex.QueryBuilder) => Knex.QueryBuilder)[] = [];
     constructor(knex: Knex) {
@@ -28,12 +32,16 @@ export class QueryBuilderCustom {
         return this;
     }
 
-    addDatasetFields(fields: DatasetField[]) {
+    addDatasetFields(fields: DatasetField[],ignoreAggregates: boolean = false) {
         this.operations.push((knexBuilder: Knex.QueryBuilder) => {
             fields.forEach((field) => {
                 if (field.isSimple) {
-                    const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} as ${field.name}`;   
-                    knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+                    const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} as ${field.name}`;  
+                    if (ignoreAggregates) {
+                        knexBuilder = knexBuilder.select(fieldString);
+                    } else {
+                        knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+                    }
                 } else {
                     let fieldString = `${field.formula} as ${field.name}`;
                     for (let i=0; i<field.sourceFields.length;i++) {
@@ -57,7 +65,8 @@ export class QueryBuilderCustom {
             const joinedTables = [requiredTables[0]];
             let tempVariable = 0;
             let el: DatasetJoin;
-            while (joinedTables.length<requiredTables.length) {
+            // while (   joinedTables.length<requiredTables.length) {
+            while (requiredTables.some((table) => !joinedTables.includes(table))) {
                 tempVariable = joinedTables.length
                 el = joins.find((join) => joinedTables.includes(join.leftSourceField.sourceTable.name)
                     && !joinedTables.includes(join.rightSourceField.sourceTable.name));
@@ -117,6 +126,65 @@ export class QueryBuilderCustom {
             return knexBuilder;
         });
         return this;
+    }
+
+    filter(filters: ChartFilter[]) {
+        this.operations.push((knexBuilder: Knex.QueryBuilder) => {
+            knexBuilder.where((builder) => {
+                filters.forEach(element => {
+                    builder = this
+                        .addWhereFunction(builder,element.operator,element.value1,element.value2)
+                        (this.getFullFieldFormula(element.field));
+                });
+            })
+            return knexBuilder;
+        });
+        return this;
+    }
+
+    sortBy(sortBy: ChartSort[]) {
+        this.operations.push((knexBuilder: Knex.QueryBuilder) => {
+            const sortConditions = sortBy.sort((a,b) => a.order-b.order)
+                .map((element) => ({'column': element.field.name,'order':element.asc?'asc':'desc'}));
+            knexBuilder = knexBuilder.orderBy(sortConditions);
+            return knexBuilder;
+        });
+        return this;
+    }
+
+    private getFullFieldFormula(field: DatasetField) {
+        if (field.isSimple) {
+            return `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name}`;   
+        } 
+        let fieldString = `${field.formula} as ${field.name}`;
+        for (let i=0; i<field.sourceFields.length;i++) {
+            fieldString = fieldString.replaceAll("${"+i+"}",`"${field.sourceFields[i].sourceTable.name}"."${field.sourceFields[i].name}"`);
+        }
+        return this.knex.raw(fieldString);        
+    }
+
+    private addWhereFunction(knexBuilder: Knex.QueryBuilder, filterType: string, field1: string, field2: string) {
+        return (a: any) => {
+            switch (filterType) {
+                case "contains":
+                    return knexBuilder.where(a, 'like', `%${field1}%`);
+                case "=":
+                    return knexBuilder.where(a, field1);
+                case "!=":
+                    return knexBuilder.whereNot(a, field1);
+                case ">":
+                    return knexBuilder.where(a, '>', field1);
+                case ">=":
+                    return knexBuilder.where(a, '>=', field1);
+                case "<":
+                    return knexBuilder.where(a, '<', field1);
+                case "<=":
+                    return knexBuilder.where(a, '<=', field1);
+                case "between":
+                    return knexBuilder.whereBetween(a, [field1, field2]);
+            }
+            return knexBuilder.where(a);
+        }
     }
 
     private addAggregateFunction(knexBuilder: Knex.QueryBuilder,aggregateType: AggregateType) {

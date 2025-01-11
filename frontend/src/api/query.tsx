@@ -6,4 +6,9 @@ async function execute_dataset_query(datasetId: string, paginationDto: Paginatio
     return request(`/api/query/dataset/${datasetId}/execute`,"GET", {query_params: paginationDto});
 }
 
+async function execute_chart_query(chartId: string) {
+    return request(`/api/query/chart/${chartId}/execute`,"GET", {});
+}
+
 export const useExecuteDatasetQuery = () => useCustomFetch<any[],typeof execute_dataset_query>(execute_dataset_query);
+export const useExecuteChartQuery = () => useCustomFetch<any[],typeof execute_chart_query>(execute_chart_query);

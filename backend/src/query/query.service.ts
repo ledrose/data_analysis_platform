@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotImplementedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException, NotImplementedException } from '@nestjs/common';
 import { ConnectionsService } from 'src/connections/connections.service';
 import { QueryDatasetDto } from './dto/query-dataset.dto';
 import { DatasetsService } from 'src/datasets/datasets.service';
@@ -64,6 +64,20 @@ export class QueryService {
                         }
                     }
                 },
+                filters: {
+                    field: {
+                        sourceFields: {
+                            sourceTable: true
+                        }
+                    }
+                },
+                sorts: {
+                    field: {
+                        sourceFields: {
+                            sourceTable: true
+                        }
+                    }
+                },
                 dataset: {
                     connection: true,
                     joins: {
@@ -77,23 +91,38 @@ export class QueryService {
                 }
             }
         })
-        const knex = await this.connectionsService.getConnection(chartInfo.dataset.connection.id,username);
-        const fields = chartInfo.axes.map((axis) => axis.field);
-        const xAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.X).map((axis) => axis.field);
-        const xError = xAxisFields.filter((axis) => axis.aggregateType != AggregateType.NONE);
-        const yAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => axis.field);
-        const yError = yAxisFields.filter((axis) => axis.aggregateType == AggregateType.NONE);
 
-        //TODO check for complex queries being aggregate 
-        //TODO move this check to requests for adding axes
-        if (xError.length > 0) {
-            throw new BadRequestException(`X axis field ${xError.map((field) => field.name)} is aggregateable which is not supported`);
+        const knex = await this.connectionsService.getConnection(chartInfo.dataset.connection.id,username);
+        const fields = chartInfo.axes.map((axis) => axis.field)
+            // .concat(chartInfo.filters.map((axis) => axis.field))
+            .concat(chartInfo.sorts.map((axis) => axis.field))
+            .filter((obj,index,self) => index === self.findIndex((t) => t.id === obj.id));
+        //These checks not really neccessary but probably will help with debugging
+        const xAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.X).map((axis) => axis.field);
+        if (xAxisFields.length === 0) {
+            throw new BadRequestException('X axis not selected');
         }
-        if (yError.length > 0) {
-            throw new BadRequestException(`Y axis fields ${yError.map((field) => field.name)} is not aggregateable which is not supported`);
+        if (xAxisFields.some((axis) => axis.aggregateType != AggregateType.NONE)) {
+            throw new BadRequestException('X axis field is aggregateable which is not supported');
+        }
+        const yAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => axis.field);
+        if (yAxisFields.length === 0) {
+            throw new BadRequestException('X axis not selected');
+        }
+        if (yAxisFields.some((axis) => axis.aggregateType == AggregateType.NONE)) {
+            throw new BadRequestException('Y axis field not aggregateable which is not supported');
         }
         const joins = chartInfo.dataset.joins;
-        return (await this.buildQuery(knex, fields, joins, xAxisFields ,0,0));
+        const requiredTables = [...new Set(fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
+
+        return QueryBuilderCustom.new(knex)
+            .addDatasetFields(fields)
+            .fromRequiredTables(requiredTables, joins)
+            .groupBy(xAxisFields)
+            .filter(chartInfo.filters)
+            .sortBy(chartInfo.sorts)
+            .build();
+        
     }
 
     async testFormulaField(datasetId: string, testQuery: string, requiredTables: string[]) {
@@ -124,7 +153,7 @@ export class QueryService {
         const requiredTables = [...new Set(fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
         console.log(requiredTables);
         return QueryBuilderCustom.new(knex)
-            .addDatasetFields(fields)
+            .addDatasetFields(fields, true)
             .fromRequiredTables(requiredTables, joins)
             .groupBy(groupBy)
             .offset(offset)
@@ -132,39 +161,5 @@ export class QueryService {
             .build();
     }
 
-    addAggregateFunction(knexBuilder: Knex.QueryBuilder,aggregateType: AggregateType) {
-        return (a: string) => {
-            switch (aggregateType) {
-                case AggregateType.SUM:
-                    return knexBuilder.sum(a);
-                case AggregateType.COUNT:
-                    return knexBuilder.count(a);
-                case AggregateType.NONE:
-                    return knexBuilder.select(a);
-            }
-        }
-    }
-    addJoinFunction(knexBuilder: Knex.QueryBuilder) {
-        return {
-            "inner": (a,b,c) => knexBuilder.innerJoin(a,b,c),
-            "left": (a,b,c) => knexBuilder.leftJoin(a,b,c),
-            "right": (a,b,c) => knexBuilder.rightJoin(a,b,c),
-        }
-    }
-    
-
-    // async SqlDatasetQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, username: string) {
-    //     const res = await this.buildChartQuery(queryDto, datasetId, paginationDto, username);
-    //     return res.builder.toSQL().sql;
-    // }
-
-
-
-    // async executeQuery(queryDto: QueryDatasetDto, datasetId: string, paginationDto: PaginationDto, user: string) {
-    //     const res = await this.buildChartQuery(queryDto, datasetId, paginationDto, user);
-    //     return await res.builder;
-    //     // throw new Error('Method not implemented.');
-    // }
-    
 
 }
