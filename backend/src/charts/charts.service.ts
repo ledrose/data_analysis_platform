@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chart } from './entities/chart.entity';
 import { Not, Repository } from 'typeorm';
 import { DatasetsService } from 'src/datasets/datasets.service';
-import { updateChartDto } from './dto/update-chart.dto';
+import { UpdateChartDto } from './dto/update-chart.dto';
 import { AxisType, ChartAxis } from './entities/chart-axis.entity';
 import { DatasetFieldService } from 'src/datasets/dataset-field/dataset-field.service';
 import { ChartPropType, UpdateChartPropDto } from './dto/update-chart-prop.dto';
@@ -80,7 +80,7 @@ export class ChartsService {
         });
     }
     
-    async updateChart(chartId: string, username: string, chartDro: updateChartDto) {
+    async updateChart(chartId: string, username: string, chartDro: UpdateChartDto) {
         const chart = await this.getChart(chartId,username);
         if (!chart) {
             throw new BadRequestException('Chart not found');

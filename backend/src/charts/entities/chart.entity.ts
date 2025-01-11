@@ -22,6 +22,9 @@ export class Chart {
     @Column()
     description: string
 
+    @Column({type: "enum", enum: ChartType, default: ChartType.LINE})
+    type: ChartType
+
     @ManyToOne(() => Dataset, (dataset) => dataset.charts)
     @JoinColumn({name: 'datasetId'})
     dataset: Dataset

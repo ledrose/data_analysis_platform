@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from
 import { AddChartDto } from './dto/add-chart.dto';
 import { Auth } from 'src/auth/auth.decorator';
 import { ChartsService } from './charts.service';
-import { updateChartDto } from './dto/update-chart.dto';
+import { UpdateChartDto } from './dto/update-chart.dto';
 import { ChartPropType, UpdateChartPropDto } from './dto/update-chart-prop.dto';
 
 @Controller('charts')
@@ -19,7 +19,7 @@ export class ChartsController {
 
     @Post("update/:chart_id")
     @HttpCode(HttpStatus.OK)
-    async updateChart(@Param("chart_id") chartId: string,@Auth() username: string,@Body() chartDro: updateChartDto) {
+    async updateChart(@Param("chart_id") chartId: string,@Auth() username: string,@Body() chartDro: UpdateChartDto) {
         return await this.chartsService.updateChart(chartId, username, chartDro);
     }
 

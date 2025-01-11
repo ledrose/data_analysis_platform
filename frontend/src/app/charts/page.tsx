@@ -8,16 +8,27 @@ import { Button } from '@/components/ui/button'
 import { Cross, Delete, Settings } from 'lucide-react'
 import { set } from 'react-hook-form'
 import { useGetDatasetFieldsApi } from '@/api/datasets'
-import { useDeleteChartPropsApi, useGetChartApi, useUpdateChartPropsApi } from '@/api/charts'
+import { useDeleteChartPropsApi, useGetChartApi, useUpdateChartApi, useUpdateChartPropsApi } from '@/api/charts'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { ChartPropType } from '@backend/charts/dto/update-chart-prop.dto'
 import { useExecuteChartQuery } from '@/api/query'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SelectGroup } from '@radix-ui/react-select'
 
 
 export enum AxisType {
   X = "x",
   Y = "y"
+}
+
+
+export enum ChartType {
+  BAR = "bar",
+  LINE = "line",
+  PIE = "pie"
 }
 
 
@@ -34,8 +45,10 @@ export default function ChartPage() {
     const {data:chart,sendRequest: getChart} = useGetChartApi();
     const {sendRequest: updateChartProps} = useUpdateChartPropsApi()
     const {sendRequest: deleteChartProps} = useDeleteChartPropsApi()
+    const {sendRequest: updateChart} = useUpdateChartApi();
     const {data:chartData, sendRequest: executeChart} = useExecuteChartQuery();
     const searchParams = useSearchParams();
+    const [chartType,setChartType] = useState<"line" | "bar" | "pie">("line");
     const chartId = searchParams.get('id') as string;
     useEffect(() => {
       getChart({
@@ -46,6 +59,7 @@ export default function ChartPage() {
             filter: data.filters.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
             sort: data.sorts.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
           })
+          setChartType(data.type);
         },
         onErr: () => router.push('/')
       })(chartId);
@@ -68,7 +82,13 @@ export default function ChartPage() {
     const [isBasicDragged, setIsBasicDragged] = useState(false)
     const [isAggregatedDragged, setIsAggregatedDragged] = useState(false)
 
-
+    const updateChartType = (type: ChartType) => {
+      updateChart({
+        onData: () => {
+          setChartType(type);
+        },
+      })(chartId,{type});
+    }
     const onDeleteFromAttrZone = (zoneId: string,id: number) => {
       deleteChartProps({
         onData: () => {
@@ -123,6 +143,24 @@ export default function ChartPage() {
                 <StoreZone name="Aggregate" fields={aggregateFields}/>
               </div>
               <div className="w-1/2">
+                <div className='grid w-full max-w-sm items-center gap-1.5'>
+                  {/* <Label htmlFor='chartType'>Chart Type</Label> */}
+                  <Select onValueChange={updateChartType} value={chartType}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select chart type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {Object.values(ChartType).map((type) => (
+                          <SelectItem key={type} value={type}>
+                              {type}
+                          </SelectItem>
+                          
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="xAxis" name="xAxis" fieldType='normal' fields={chartState['xAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isAggregatedDragged} id="yAxis" name="yAxis" fieldType='aggregate' fields={chartState['yAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged || isAggregatedDragged} id="sort" name="Sort" fieldType='any' fields={chartState['sort']}/>
@@ -131,7 +169,7 @@ export default function ChartPage() {
             </div>
           </Card>
           <Card className="w-2/3 p-4">
-            <PlaceholderChart  />
+            <PlaceholderChart chartData={chartData} />
           </Card>
         </div>
       </div>

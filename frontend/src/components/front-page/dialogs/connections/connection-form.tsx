@@ -83,7 +83,7 @@ export function ConnectionForm({form,onSubmit,err,type}: {form: UseFormReturn<Fo
                         </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                        {Object.values(ConnectionType).map((type) => (
+                        {Object.values(ConnectionType).map((type: ConnectionType) => (
                         <SelectItem key={type} value={type}>
                             {type}
                         </SelectItem>

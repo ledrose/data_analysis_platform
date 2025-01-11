@@ -2,7 +2,8 @@ import useCustomFetch from "@/_helpers/CustomFetchHook";
 import request from "@/_helpers/FetchHelper";
 import {Chart} from "@backend/charts/entities/chart.entity";
 import {AddChartDto} from "@backend/charts/dto/add-chart.dto";
-import {ChartPropType} from "@backend/charts/dto/update-chart-prop.dto";
+import {ChartPropType, UpdateChartPropDto} from "@backend/charts/dto/update-chart-prop.dto";
+import {UpdateChartDto} from "@backend/charts/dto/update-chart.dto";
 async function get_chart(chartId: string) {
     return request(`/api/charts/${chartId}`,"GET", {});
 }
@@ -17,7 +18,7 @@ async function add_chart(chart: AddChartDto) {
     })
 }
 
-async function update_chart(chartId: string, chart: AddChartDto) {
+async function update_chart(chartId: string, chart: UpdateChartDto) {
     return request(`/api/charts/update/${chartId}`,"POST", {
         body: chart
     })

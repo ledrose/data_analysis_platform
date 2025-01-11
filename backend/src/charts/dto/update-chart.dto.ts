@@ -1,7 +1,8 @@
 import { Type } from "class-transformer";
 import { IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ChartType } from "../entities/chart.entity";
 
-export class updateChartDto {
+export class UpdateChartDto {
     @IsOptional()
     @IsString()
     name?: string;
@@ -13,5 +14,5 @@ export class updateChartDto {
     datasetId?: string;
     @IsOptional()
     @IsString()
-    type?: string;
+    type?: ChartType;
 }

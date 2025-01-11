@@ -10,7 +10,7 @@ const data = [
   { name: 'D', ind:4, value: 25 },
 ]
 
-export default function PlaceholderChart() {
+export default function PlaceholderChart({chartData}: {chartData: any}) {
   return (
     <ChartContainer
       config={{
