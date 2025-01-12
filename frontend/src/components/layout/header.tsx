@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
+import Link from "next/link";
 
 export function Header() {
   return (
@@ -10,9 +11,9 @@ export function Header() {
         <img src="/logo.svg" alt="Logo" className="h-8 w-8" />
         <nav>
           <ul className="flex space-x-2">
-            <li><Button variant="ghost">Dashboard</Button></li>
-            <li><Button variant="ghost">Datasets</Button></li>
-            <li><Button variant="ghost">Analysis</Button></li>
+          <li>
+            <Link href="/"><Button variant="ghost">Home</Button></Link>
+          </li>
           </ul>
         </nav>
       </div>

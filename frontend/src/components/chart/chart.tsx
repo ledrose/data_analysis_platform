@@ -12,7 +12,7 @@ const data = [
 ]
 
 export default function PlaceholderChart({chartData, chartState, chartType}: {chartData: any, chartState: Record<string, Field<any>[]>, chartType: string}) {
-  return (
+  return (chartData && chartState.xAxis.length > 0 && chartState.yAxis.length > 0 && chartType) && (
     <ChartContainer
       config={{
         value: {
@@ -31,18 +31,25 @@ export default function PlaceholderChart({chartData, chartState, chartType}: {ch
 
 
 export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[], chartType: string}) {
+  const maxHeight = chartData?.length > 0 ? Math.max(...yAxis.map((field) => Math.max(...chartData.map((item: any) => item[field.name])))) : 'dataMax'
+  const minHeight = chartData?.length > 0 ? Math.min(...yAxis.map((field) => Math.min(...chartData.map((item: any) => item[field.name])))) : 'dataMin'
   switch (chartType) {
-    case 'line': return (LineChartComplete({chartData: chartData, xAxis: xAxis, yAxis: yAxis}))
-    case 'bar': return (BarChartComplete({chartData: chartData, xAxis: xAxis, yAxis: yAxis}))
-    case 'pie': return (PieChartComplete({chartData: chartData, xAxis: xAxis, yAxis: yAxis}))
+    case 'line': return (LineChartComplete(({chartData, xAxis, yAxis, maxHeight, minHeight})))
+    case 'bar': return (BarChartComplete(({chartData, xAxis, yAxis, maxHeight, minHeight})))
+    case 'pie': return (PieChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight}))
     default: return <></>
   } 
 }
 
-export function BarChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
+interface ChartProps {
+  chartData: any
+  xAxis: Field<any>[]
+  yAxis: Field<any>[]
+  maxHeight: number | "dataMax"
+  minHeight: number | "dataMin"
+}
 
-  const maxHeight = chartData?.length > 0 ? Math.max(...chartData.map((item: any) => item[yAxis[0].name])) : 'dataMax'
-  const minHeight = chartData?.length > 0 ? Math.min(...chartData.map((item: any) => item[yAxis[0].name])) : 'dataMax'
+export function BarChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight}: ChartProps) {
   return (  
   <BarChart data={chartData}>
     <CartesianGrid strokeDasharray="3 3" />
@@ -61,7 +68,7 @@ export function BarChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAx
   )
 }
 
-export function LineChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
+export function LineChartComplete({chartData, xAxis, yAxis}: ChartProps) {
   return (
   <LineChart data={data}>
     <Line type="linear" dataKey="value" stroke="var(--color-value)" />
@@ -73,7 +80,7 @@ export function LineChartComplete({chartData, xAxis, yAxis}: {chartData: any, xA
   )
 }
 
-export function PieChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
+export function PieChartComplete({chartData, xAxis, yAxis}: ChartProps) {
   return (
   <LineChart data={data}>
     <Line type="linear" dataKey="value" stroke="var(--color-value)" />

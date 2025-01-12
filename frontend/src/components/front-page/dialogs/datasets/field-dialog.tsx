@@ -19,6 +19,7 @@ import { AddFieldDto } from '@backend/datasets/dataset-field/dto/add-field.dto'
 export enum AggregateType {
     NONE = "none",
     SUM = "sum",
+    COUNTUNIQUE = "countunique",
     COUNT = "count"
 }
 

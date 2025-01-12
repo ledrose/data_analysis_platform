@@ -122,7 +122,7 @@ export class ChartsService {
                 if (field && JSON.stringify({...field,...propDto.args}) == JSON.stringify(field)) {
                     throw new BadRequestException('Field already exists');
                 }
-                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
+                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args, type: AxisType.X});
             }
             case ChartPropType.YAxis: {
                 const field = await this.chartAxisRepository.findOne(
@@ -131,7 +131,7 @@ export class ChartsService {
                 if (field && JSON.stringify({...field,...propDto.args}) == JSON.stringify(field)) {
                     throw new BadRequestException('Field already exists');
                 }
-                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
+                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args, type: AxisType.Y});
             }
         }
         throw new NotImplementedException();

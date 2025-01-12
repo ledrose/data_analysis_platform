@@ -39,7 +39,7 @@ const operations : { name: string, args: number, types?: string[] }[] = [
 
 
 export function FilterFormDialog({datasetField, value, hook, updateState}: {datasetField: DatasetField, updateState: (newArgs: ArgsFilter) => void, value: ArgsFilter | undefined, hook: [boolean, React.Dispatch<React.SetStateAction<boolean>>]}) {
-   return (
+    return (
    <Dialog open={hook[0]} onOpenChange={hook[1]}>
         <DialogContent className="max-w-4xl max-h-screen">
             <DialogHeader>
@@ -61,7 +61,6 @@ export function FilterFormDialog({datasetField, value, hook, updateState}: {data
 }
 
 export function FilterForm({datasetField, value, setOpen,updateState}: {datasetField: DatasetField, updateState: (newArgs: ArgsFilter) => void, value: ArgsFilter | undefined, setOpen: React.Dispatch<React.SetStateAction<boolean>>}) {
-    // console.log(datasetField)
     const [curOperation, setCurOperation] = useState(value?.operator ?? operations[0].name);
     const selectedOperation = operations.find((o) => o.name === curOperation);
     const formSchema = z.object({
@@ -93,7 +92,7 @@ export function FilterForm({datasetField, value, setOpen,updateState}: {datasetF
 
     return (
         <Form {...form}>
-            <form id="edit-filter-form" onSubmit={form.handleSubmit(onSubmit)}>
+            <form id="edit-filter-form" onSubmit={form.handleSubmit(onSubmit,(err) => console.log(err))}>
                 <FormField 
                     control={form.control}
                     name="field"
@@ -191,7 +190,7 @@ function selectZodType(type: ValueType) {
         case ValueType.BOOLEAN:
             return z.boolean();
         case ValueType.DATE || ValueType.DATETIME:
-            return z.date();
+            return z.string();
     }
     return z.string();
 }
@@ -231,37 +230,28 @@ function FormFieldSelection({type, field}: FieldSelectionProps) {
         case ValueType.DATE:
         case ValueType.DATETIME:
             return (
-                <Popover>
+            <Popover>
                 <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
+                <Button
+                    variant={"outline"}
+                    className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !field.value && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
+                <PopoverContent className="w-auto p-0">
+                <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
+                    onSelect={(val) => {console.log(val?.toISOString()); field.onChange(val?.toISOString())}}
+                    // initialFocus
+                />
                 </PopoverContent>
-              </Popover>
+            </Popover>
             )
     }
 }

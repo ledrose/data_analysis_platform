@@ -21,6 +21,7 @@ export enum ValueType {
 export enum AggregateType {
     NONE = "none",
     SUM = "sum",
+    COUNTUNIQUE = "countunique",
     COUNT = "count"
 }
 

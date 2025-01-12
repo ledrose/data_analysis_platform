@@ -272,6 +272,7 @@ interface FilterChartZoneProps<T> extends ChartZoneProps<T> {
 
 function FilterZone({id, fields,name, fieldType, onDelete, isItemDragged = false, datasetFields, updateState}: FilterChartZoneProps<ArgsFilter>) {
   const [isFilterFormOpen, setIsFilterFormOpen] = useState(false);
+  const [formInitData, setFromInitData] = useState<{args: ArgsFilter, datasetField: DatasetField, fieldId: number} | undefined>(undefined);
   const {isOver, setNodeRef} = useDroppable({id,
     data: {
       fieldType: fieldType
@@ -283,15 +284,26 @@ function FilterZone({id, fields,name, fieldType, onDelete, isItemDragged = false
   return (
     <div className="mb-4">
       <h3 className="font-semibold mb-2">{name}</h3>
+      <FilterFormDialog 
+              updateState={(newArgs) => updateState(id, formInitData?.fieldId!, newArgs)} 
+              hook={[isFilterFormOpen, setIsFilterFormOpen]} 
+              datasetField={formInitData?.datasetField!} 
+              value={formInitData?.args}/>
       <div ref={setNodeRef} className={`bg-muted min-h-[100px] p-2 rounded`} style={draggedStyle}>
-        {fields.map((field) => (
+        {fields.map((field) => {
+          return(
           <DatasetCard onDelete={(fieldId: number) => onDelete(id,fieldId)} key={field.id} field={field}>
-            <FilterFormDialog updateState={(newArgs) => updateState(id, field.id, newArgs)} hook={[isFilterFormOpen, setIsFilterFormOpen]} datasetField={datasetFields.find((datasetField) => datasetField.name == field.name)!} value={field.args}/>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(ev) => setIsFilterFormOpen(true)}>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(ev) => {
+              setFromInitData({
+                args: field.args!,
+                datasetField: datasetFields.find((datasetField) => datasetField.id == field.id)!,
+                fieldId: field.id
+              }); 
+              setIsFilterFormOpen(true)}}>
               <Settings className="h-4 w-4" />
             </Button>
           </DatasetCard>
-        ))}
+        )})}
       </div>
     </div>
   )

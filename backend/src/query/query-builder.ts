@@ -198,6 +198,8 @@ export class QueryBuilderCustom {
                     return knexBuilder.count(a);
                 case AggregateType.NONE:
                     return knexBuilder.select(a);
+                case AggregateType.COUNTUNIQUE:
+                    return knexBuilder.countDistinct(a);
             }
         }
     }
