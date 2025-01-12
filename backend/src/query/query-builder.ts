@@ -182,6 +182,8 @@ export class QueryBuilderCustom {
                     return knexBuilder.where(a, '<=', field1);
                 case "between":
                     return knexBuilder.whereBetween(a, [field1, field2]);
+                case "like":
+                    return knexBuilder.whereLike(a, `%${field1}%`);
             }
             return knexBuilder.where(a);
         }

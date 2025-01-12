@@ -35,6 +35,7 @@ export interface ArgsAxis {
 }
 
 export interface ArgsFilter {
+  
   operator: string,
   value1: string,
   value2?: string

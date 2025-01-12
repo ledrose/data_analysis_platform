@@ -1,6 +1,6 @@
 import { x } from "@hapi/joi";
 import { Type, TypeHelpOptions } from "class-transformer";
-import { IsBoolean, IsEnum, IsInt, IsOptional, ValidateIf, ValidateNested } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateIf, ValidateNested } from "class-validator";
 
 export enum ChartPropType {
     XAxis = "xAxis",
@@ -10,9 +10,11 @@ export enum ChartPropType {
 }
 
 class ArgsFilter {
-
+    @IsString()
     operator: string;
+    @IsString()
     value1: string;
+    @IsString()
     value2?: string;
 }
 class ArgsSort {

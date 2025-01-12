@@ -105,14 +105,14 @@ export class ChartsService {
                 return await this.chartSortRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
             }
             case ChartPropType.Filter: {
-
+                // console.log(propDto)
                 const field = await this.chartFilterRepository.findOne(
                     {where: {chartId,  fieldId: propDto.id}, relations: {field: true}}
                 )
                 if (field && JSON.stringify({...field,...propDto.args}) == JSON.stringify(field)) {
                     throw new BadRequestException('Field already exists');
                 }
-                return await this.chartSortRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
+                return await this.chartFilterRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
             }   
             case ChartPropType.XAxis: {
                 const field = await this.chartAxisRepository.findOne(
@@ -122,7 +122,7 @@ export class ChartsService {
                 if (field && JSON.stringify({...field,...propDto.args}) == JSON.stringify(field)) {
                     throw new BadRequestException('Field already exists');
                 }
-                return await this.chartSortRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
+                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
             }
             case ChartPropType.YAxis: {
                 const field = await this.chartAxisRepository.findOne(
@@ -131,7 +131,7 @@ export class ChartsService {
                 if (field && JSON.stringify({...field,...propDto.args}) == JSON.stringify(field)) {
                     throw new BadRequestException('Field already exists');
                 }
-                return await this.chartSortRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
+                return await this.chartAxisRepository.save({chartId,fieldId: propDto.id, ...field, ...propDto.args});
             }
         }
         throw new NotImplementedException();

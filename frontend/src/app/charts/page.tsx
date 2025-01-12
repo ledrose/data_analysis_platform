@@ -1,8 +1,7 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
-import PlaceholderChart from '@/components/chart/placeholder'
-import FieldList from '@/components/chart/field-list'
+import PlaceholderChart from '@/components/chart/chart'
 import {DndContext, DragEndEvent, DragStartEvent, useDraggable, useDroppable} from '@dnd-kit/core'
 import { Button } from '@/components/ui/button'
 import { ArrowDown, ArrowUp, Cross, Delete, Settings } from 'lucide-react'
@@ -14,6 +13,7 @@ import { useExecuteChartQuery } from '@/api/query'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SelectGroup } from '@radix-ui/react-select'
 import { DatasetField } from '@backend/datasets/entities/dataset-field.entity'
+import { FilterFormDialog } from '@/components/chart/filter-form'
 
 
 export enum AxisType {
@@ -110,7 +110,6 @@ export default function ChartPage() {
       if (event.over && event.over.id) {
         if (event.over.data.current?.fieldType === "any" || event.active.data.current?.fieldType === event.over.data.current?.fieldType) {
           updateChartProps({
-
             onData: (data) => {
               setChartState((prevState) => {
                 const nextState = structuredClone(prevState);
@@ -170,7 +169,7 @@ export default function ChartPage() {
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="xAxis" name="xAxis" fieldType='normal' fields={chartState['xAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isAggregatedDragged} id="yAxis" name="yAxis" fieldType='aggregate' fields={chartState['yAxis']}/>
                 <SortZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged || isAggregatedDragged} id="sort" name="Sort" fieldType='any' fields={chartState['sort']} updateState={updatePartialChartState}/>
-                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="filter" name="Filter" fieldType='normal' fields={chartState['filter']}/>
+                <FilterZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="filter" name="Filter" fieldType='normal' fields={chartState['filter']} updateState={updatePartialChartState} datasetFields={fields}/>
               </div>
             </div>
           </Card>
@@ -208,8 +207,8 @@ interface ChartZoneProps<T> {
   onDelete: (zoneId: string,id: number) => void
 }
 
-interface EditableChartZoneProps<T> extends ChartZoneProps<T> {
-  updateState: (zoneId: string,id: number, newArgs: ArgsAxis | ArgsFilter | ArgsSort) => void
+interface SortChartZoneProps<T> extends ChartZoneProps<T> {
+  updateState: (zoneId: string,id: number, newArgs:T) => void
 }
 
 function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}: ChartZoneProps<ArgsAxis>) {
@@ -233,7 +232,7 @@ function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}:
 }
 
 
-function SortZone({id, fields,name, fieldType, onDelete, isItemDragged = false, updateState}: EditableChartZoneProps<ArgsSort>) {
+function SortZone({id, fields,name, fieldType, onDelete, isItemDragged = false, updateState}: SortChartZoneProps<ArgsSort>) {
   const {isOver, setNodeRef} = useDroppable({id,
     data: {
       fieldType: fieldType
@@ -255,8 +254,8 @@ function SortZone({id, fields,name, fieldType, onDelete, isItemDragged = false, 
       <div ref={setNodeRef} className={`bg-muted min-h-[100px] p-2 rounded`} style={draggedStyle}>
         {fields.map((field) => (
           <DatasetCard onDelete={(fieldId: number) => onDelete(id,fieldId)} key={field.id} field={field}>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(ev) => {console.log(ev); reverseOrder(field)}}>
-              {field.args?.asc ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(_) => reverseOrder(field)}>
+              {field.args?.asc ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
             </Button>
           </DatasetCard>
         ))}
@@ -264,6 +263,40 @@ function SortZone({id, fields,name, fieldType, onDelete, isItemDragged = false, 
     </div>
   )
 }
+
+
+interface FilterChartZoneProps<T> extends ChartZoneProps<T> {
+  updateState: (zoneId: string,id: number, newArgs: T) => void
+  datasetFields: DatasetField[]
+}
+
+function FilterZone({id, fields,name, fieldType, onDelete, isItemDragged = false, datasetFields, updateState}: FilterChartZoneProps<ArgsFilter>) {
+  const [isFilterFormOpen, setIsFilterFormOpen] = useState(false);
+  const {isOver, setNodeRef} = useDroppable({id,
+    data: {
+      fieldType: fieldType
+    }
+  });
+
+  const color = {color: isOver ? 'bg-primary' : 'bg-muted'}
+  const draggedStyle = isItemDragged ?  {border: '1px dashed #ccc', backgroundColor: 'green'} : {border: '1px solid #ccc'}
+  return (
+    <div className="mb-4">
+      <h3 className="font-semibold mb-2">{name}</h3>
+      <div ref={setNodeRef} className={`bg-muted min-h-[100px] p-2 rounded`} style={draggedStyle}>
+        {fields.map((field) => (
+          <DatasetCard onDelete={(fieldId: number) => onDelete(id,fieldId)} key={field.id} field={field}>
+            <FilterFormDialog updateState={(newArgs) => updateState(id, field.id, newArgs)} hook={[isFilterFormOpen, setIsFilterFormOpen]} datasetField={datasetFields.find((datasetField) => datasetField.name == field.name)!} value={field.args}/>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(ev) => setIsFilterFormOpen(true)}>
+              <Settings className="h-4 w-4" />
+            </Button>
+          </DatasetCard>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 
 
 function DraggableDatasetCard({field}: {field:Field<any>}) {

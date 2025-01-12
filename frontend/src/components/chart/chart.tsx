@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartContainer } from '@/components/ui/chart'
-import { Field } from '@/app/charts/page'
+import { Field } from '@/api/charts'
 
 const data = [
   { name: 'A', ind:1, value: 10 },
@@ -11,7 +11,7 @@ const data = [
   { name: 'D', ind:4, value: 25 },
 ]
 
-export default function PlaceholderChart({chartData, chartState, chartType}: {chartData: any, chartState: Record<string, Field[]>, chartType: string}) {
+export default function PlaceholderChart({chartData, chartState, chartType}: {chartData: any, chartState: Record<string, Field<any>[]>, chartType: string}) {
   return (
     <ChartContainer
       config={{
@@ -30,7 +30,7 @@ export default function PlaceholderChart({chartData, chartState, chartType}: {ch
 }
 
 
-export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: any, xAxis: Field[], yAxis: Field[], chartType: string}) {
+export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[], chartType: string}) {
   switch (chartType) {
     case 'line': return (LineChartComplete({chartData: chartData, xAxis: xAxis, yAxis: yAxis}))
     case 'bar': return (BarChartComplete({chartData: chartData, xAxis: xAxis, yAxis: yAxis}))
@@ -39,14 +39,15 @@ export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: an
   } 
 }
 
-export function BarChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field[], yAxis: Field[]}) {
+export function BarChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
 
   const maxHeight = chartData?.length > 0 ? Math.max(...chartData.map((item: any) => item[yAxis[0].name])) : 'dataMax'
+  const minHeight = chartData?.length > 0 ? Math.min(...chartData.map((item: any) => item[yAxis[0].name])) : 'dataMax'
   return (  
   <BarChart data={chartData}>
     <CartesianGrid strokeDasharray="3 3" />
     <XAxis dataKey={xAxis[0].name} interval={0} angle={-70} textAnchor='end'/>
-    <YAxis dataKey={yAxis[0].name} domain={['dataMin', maxHeight]} />
+    <YAxis dataKey={yAxis[0].name} domain={[minHeight, maxHeight]} />
     <Tooltip  />
     <Legend />
     {
@@ -60,7 +61,7 @@ export function BarChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAx
   )
 }
 
-export function LineChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field[], yAxis: Field[]}) {
+export function LineChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
   return (
   <LineChart data={data}>
     <Line type="linear" dataKey="value" stroke="var(--color-value)" />
@@ -72,7 +73,7 @@ export function LineChartComplete({chartData, xAxis, yAxis}: {chartData: any, xA
   )
 }
 
-export function PieChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field[], yAxis: Field[]}) {
+export function PieChartComplete({chartData, xAxis, yAxis}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[]}) {
   return (
   <LineChart data={data}>
     <Line type="linear" dataKey="value" stroke="var(--color-value)" />
