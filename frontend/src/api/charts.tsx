@@ -28,11 +28,40 @@ async function delete_chart(chartId: string) {
     return request(`/api/charts/${chartId}`,"DELETE", {});
 }
 
-async function update_chart_props(chartId: string, type: ChartPropType, propDto: {id: number}) {
+
+
+export interface ArgsAxis {
+
+}
+
+export interface ArgsFilter {
+  operator: string,
+  value1: string,
+  value2?: string
+}
+
+export interface ArgsSort {
+  order: number,
+  asc: boolean
+}
+
+
+export interface Field<T> {
+  id: number
+  name: string
+  type: string
+  aggregateType: string,
+  args?: T
+}
+
+
+
+async function update_chart_props(chartId: string, type: ChartPropType, propDto: {id: number, args?: ArgsAxis | ArgsFilter | ArgsSort}) {
     return request(`/api/charts/${chartId}/props/`,"POST", {
         body: {
+            id: propDto.id,
             chartPropType: type,
-            ...propDto
+            args: propDto.args
         }
     })
 }
@@ -40,12 +69,12 @@ async function update_chart_props(chartId: string, type: ChartPropType, propDto:
 async function delete_chart_props(chartId: string, type: ChartPropType, fieldId: number) {
     return request(`/api/charts/${chartId}/props/${type}/${fieldId}`,"DELETE", {});
 }
-    
-interface ChartProp {
-    fieldId: number;
-    chartId: string;
-}
 
+interface ChartProp {
+    id: number,
+    fieldId: number,
+    //TODO make normal interface
+}
 
 export const useGetChartApi = () => useCustomFetch<Chart,typeof get_chart>(get_chart);
 export const useGetChartsApi = () => useCustomFetch<Chart[],typeof get_charts>(get_charts);

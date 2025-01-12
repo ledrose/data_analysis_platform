@@ -5,18 +5,15 @@ import PlaceholderChart from '@/components/chart/placeholder'
 import FieldList from '@/components/chart/field-list'
 import {DndContext, DragEndEvent, DragStartEvent, useDraggable, useDroppable} from '@dnd-kit/core'
 import { Button } from '@/components/ui/button'
-import { Cross, Delete, Settings } from 'lucide-react'
-import { set } from 'react-hook-form'
-import { useGetDatasetFieldsApi } from '@/api/datasets'
-import { useDeleteChartPropsApi, useGetChartApi, useUpdateChartApi, useUpdateChartPropsApi } from '@/api/charts'
+import { ArrowDown, ArrowUp, Cross, Delete, Settings } from 'lucide-react'
+import { ArgsAxis, ArgsFilter, ArgsSort, Field, useDeleteChartPropsApi, useGetChartApi, useUpdateChartApi, useUpdateChartPropsApi } from '@/api/charts'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { ChartPropType } from '@backend/charts/dto/update-chart-prop.dto'
 import { useExecuteChartQuery } from '@/api/query'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SelectGroup } from '@radix-ui/react-select'
+import { DatasetField } from '@backend/datasets/entities/dataset-field.entity'
 
 
 export enum AxisType {
@@ -32,13 +29,6 @@ export enum ChartType {
 }
 
 
-export interface Field {
-  id: number
-  name: string
-  type: string
-  aggregateType: string
-}
-
 
 export default function ChartPage() {
     const router = useRouter();
@@ -52,27 +42,28 @@ export default function ChartPage() {
     const chartId = searchParams.get('id') as string;
     useEffect(() => {
       getChart({
-        onData: (data) => {
-          setChartState({
-            xAxis: data.axes.filter((axis) => axis.type === AxisType.X).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
-            yAxis: data.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
-            filter: data.filters.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
-            sort: data.sorts.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType}}),
-          })
-          setChartType(data.type);
-        },
         onErr: () => router.push('/')
       })(chartId);
     },[]);
-    const fields = chart?.dataset.fields as Field[] || [];
+    useEffect(() => {
+      if (!chart) return;
+      setChartState({
+        xAxis: chart.axes.filter((axis) => axis.type === AxisType.X).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType, args: axis}}),
+        yAxis: chart.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType, args: axis}}),
+        filter: chart.filters.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType, args: axis}}),
+        sort: chart.sorts.map((axis) => {return {id: axis.fieldId, name: axis.field.name, type: axis.field.type, aggregateType: axis.field.aggregateType, args: axis}}),
+      });      
+      setChartType(chart.type);
+    },[chart])
+    const fields = chart?.dataset.fields as DatasetField[] || [];
     const aggregateFields = useMemo(() => fields.filter((field) => field.aggregateType != 'none'),[fields]);
     const basicFields = useMemo(() => fields.filter((field) => field.aggregateType === 'none'),[fields]);
     const [chartState,setChartState] = useState({
-      xAxis: [] as Field[],
-      yAxis: [] as Field[],
-      filter: [] as Field[],
-      sort: [] as Field[]
-    } as Record<string, Field[]>);
+      xAxis: [] as Field<ArgsAxis>[],
+      yAxis: [] as Field<ArgsAxis>[],
+      filter: [] as Field<ArgsFilter>[],
+      sort: [] as Field<ArgsSort>[]
+    } as Record<string, Field<any>[]>);
     useEffect(() => {
       if (chartState.xAxis.length === 0 || chartState.yAxis.length === 0) return
       executeChart({
@@ -100,6 +91,18 @@ export default function ChartPage() {
         },
       })(chartId,zoneId as ChartPropType,id);
     }
+    const updatePartialChartState = (zoneId: string,id: number, newArgs: ArgsAxis | ArgsFilter | ArgsSort) => {
+      updateChartProps({
+        onData: () => {
+          setChartState((prevState) => {
+            const nextState = structuredClone(prevState);
+            nextState[zoneId] = nextState[zoneId].map((field) => field.id === id ? {...field, args: newArgs} : field)
+            return nextState
+          })
+        }
+      })(chartId,zoneId as ChartPropType,{id, args: newArgs});
+      
+    }
     const handleDragEnd = (event:DragEndEvent) => {
       console.log(event)
       setIsBasicDragged(false)
@@ -107,11 +110,14 @@ export default function ChartPage() {
       if (event.over && event.over.id) {
         if (event.over.data.current?.fieldType === "any" || event.active.data.current?.fieldType === event.over.data.current?.fieldType) {
           updateChartProps({
-            onData: () => {
+
+            onData: (data) => {
               setChartState((prevState) => {
                 const nextState = structuredClone(prevState);
-                const field = fields.find((field) => field.id.toString() === event.active.id.toString());
-                if (field) nextState[event.over!.id].push(field);
+                const newField = fields.find((field) => field.id === data.fieldId) as Field<any>;
+                newField.args = data;
+                if (event.active.data.current) nextState[event.over!.id].push(newField);
+                console.log(nextState[event.over!.id])
                 return nextState
                })
             }
@@ -163,7 +169,7 @@ export default function ChartPage() {
                 </div>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="xAxis" name="xAxis" fieldType='normal' fields={chartState['xAxis']}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isAggregatedDragged} id="yAxis" name="yAxis" fieldType='aggregate' fields={chartState['yAxis']}/>
-                <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged || isAggregatedDragged} id="sort" name="Sort" fieldType='any' fields={chartState['sort']}/>
+                <SortZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged || isAggregatedDragged} id="sort" name="Sort" fieldType='any' fields={chartState['sort']} updateState={updatePartialChartState}/>
                 <AxisZone onDelete={onDeleteFromAttrZone} isItemDragged={isBasicDragged} id="filter" name="Filter" fieldType='normal' fields={chartState['filter']}/>
               </div>
             </div>
@@ -179,7 +185,7 @@ export default function ChartPage() {
 
 
 
-  function StoreZone({name, fields}: {name: string, fields: Field[]}) {
+function StoreZone({name, fields}: {name: string, fields: Field<any>[]}) {
   return (
     <div>
       <h3 className="font-semibold mb-2">{name}</h3>
@@ -193,7 +199,20 @@ export default function ChartPage() {
 }
 
 
-function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}: {id: string, fields: Field[], onDelete: (zoneId: string,id: number) => void, fieldType: "normal" | "aggregate" | "any", name: string, isItemDragged: boolean}) {
+interface ChartZoneProps<T> {
+  id: string
+  name: string
+  fields: Field<T>[]
+  fieldType: "normal" | "aggregate" | "any",
+  isItemDragged?: boolean
+  onDelete: (zoneId: string,id: number) => void
+}
+
+interface EditableChartZoneProps<T> extends ChartZoneProps<T> {
+  updateState: (zoneId: string,id: number, newArgs: ArgsAxis | ArgsFilter | ArgsSort) => void
+}
+
+function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}: ChartZoneProps<ArgsAxis>) {
   const {isOver, setNodeRef} = useDroppable({id,
     data: {
       fieldType: fieldType
@@ -213,11 +232,46 @@ function AxisZone({id, fields,name, fieldType, onDelete, isItemDragged = false}:
   )
 }
 
-function DraggableDatasetCard({field}: {field:Field}) {
+
+function SortZone({id, fields,name, fieldType, onDelete, isItemDragged = false, updateState}: EditableChartZoneProps<ArgsSort>) {
+  const {isOver, setNodeRef} = useDroppable({id,
+    data: {
+      fieldType: fieldType
+    }
+  });
+
+  const reverseOrder = (field: Field<ArgsSort>) => {
+    console.log(field)
+    const args = field.args!;
+    args.asc = !args.asc;
+    updateState(id, field.id, args);
+  }
+
+  const color = {color: isOver ? 'bg-primary' : 'bg-muted'}
+  const draggedStyle = isItemDragged ?  {border: '1px dashed #ccc', backgroundColor: 'green'} : {border: '1px solid #ccc'}
+  return (
+    <div className="mb-4">
+      <h3 className="font-semibold mb-2">{name}</h3>
+      <div ref={setNodeRef} className={`bg-muted min-h-[100px] p-2 rounded`} style={draggedStyle}>
+        {fields.map((field) => (
+          <DatasetCard onDelete={(fieldId: number) => onDelete(id,fieldId)} key={field.id} field={field}>
+            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(ev) => {console.log(ev); reverseOrder(field)}}>
+              {field.args?.asc ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
+            </Button>
+          </DatasetCard>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+function DraggableDatasetCard({field}: {field:Field<any>}) {
   const {attributes,listeners,setNodeRef,transform} = useDraggable({
     id: field.id.toString(),
     data: {
-      fieldType: field.aggregateType=='none' ? 'normal' : 'aggregate'
+      fieldType: field.aggregateType=='none' ? 'normal' : 'aggregate',
+      field
     }
   })
   const style = transform ? {
@@ -228,22 +282,21 @@ function DraggableDatasetCard({field}: {field:Field}) {
   return (
     <button ref={setNodeRef} {...attributes} {...listeners} style={style} className={' text-secondary-foreground p-2 mb-2 w-full rounded flex items-center justify-between shadow-sm '+color}>
       <span className="font-medium">{field.name}</span>
-      {/* <Button ref={setNodeRef} {...attributes} {...listeners} style={style}
-        size="icon"
-        variant="ghost"
-        onClick={() => {}}
-        className="h-6 w-6"
-      >
-        <Settings className="h-4 w-4" />
-      </Button> */}
     </button>
   )
 }
 
-function DatasetCard({field, onDelete}: {field:Field, onDelete?: (id: number) => void}) {
+interface DatasetCardProps {
+  field: Field<any>
+  onDelete?: (id: number) => void,
+  children?: React.ReactNode
+}
+
+function DatasetCard({field, onDelete, children}: DatasetCardProps) {
   return (
-    <div className={' text-secondary-foreground p-2 mb-2 w-full rounded flex items-center justify-between shadow-sm bg-secondary'}>
+    <div className={'text-secondary-foreground p-2 mb-2 w-full rounded flex items-center justify-between shadow-sm bg-secondary'}>
       <span className="font-medium">{field.name}</span>
+      {children}
       <Button
         size="icon"
         variant="ghost"
