@@ -1,6 +1,6 @@
 'use client'
 
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartContainer } from '@/components/ui/chart'
 import { Field } from '@/api/charts'
 
@@ -68,26 +68,39 @@ export function BarChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight}
   )
 }
 
-export function LineChartComplete({chartData, xAxis, yAxis}: ChartProps) {
+export function LineChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight}: ChartProps) {
   return (
-  <LineChart data={data}>
-    <Line type="linear" dataKey="value" stroke="var(--color-value)" />
+  <LineChart data={chartData}>
     <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="ind" />
-    <YAxis dataKey="value"/>
-    <Bar dataKey="value" fill="var(--color-value)" />
+    <XAxis dataKey={xAxis[0].name} angle={-70} textAnchor='end'/>
+    <YAxis dataKey={yAxis[0].name} domain={[minHeight, maxHeight]} />
+    <Tooltip/>
+    <Legend />
+    {yAxis.map((field) => {
+        return (
+          <Line type="linear" key={field.id} dataKey={field.name} stroke="var(--color-value)" />
+          // <Bar key={field.id} dataKey={field.name} fill="var(--color-value)" />
+        )
+      })}
   </LineChart>
   )
 }
 
 export function PieChartComplete({chartData, xAxis, yAxis}: ChartProps) {
+  chartData = chartData.map((item: any) => ({name: item[xAxis[0].name], value: parseInt(item[yAxis[0].name])}))
   return (
-  <LineChart data={data}>
-    <Line type="linear" dataKey="value" stroke="var(--color-value)" />
-    <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="ind" />
-    <YAxis dataKey="value"/>
-    <Bar dataKey="value" fill="var(--color-value)" />
-  </LineChart>
+    <PieChart>
+    <Tooltip/>
+    <Legend />
+    {yAxis.map((field,ind) => {
+        return (
+          // <Pie data={chartData} key={ind} dataKey={field.name} nameKey={xAxis[0].name}></Pie>
+
+          <Pie data={chartData} key={ind} dataKey={"value"} nameKey={"name"}></Pie>
+          // <Line type="linear" key={field.id} dataKey={field.name} stroke="var(--color-value)" />
+          // <Bar key={field.id} dataKey={field.name} fill="var(--color-value)" />
+        )
+      })}
+  </PieChart>
   )
 }

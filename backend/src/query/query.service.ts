@@ -94,7 +94,6 @@ export class QueryService {
 
         const knex = await this.connectionsService.getConnection(chartInfo.dataset.connection.id,username);
         const fields = chartInfo.axes.map((axis) => axis.field)
-            // .concat(chartInfo.filters.map((axis) => axis.field))
             .concat(chartInfo.sorts.map((axis) => axis.field))
             .filter((obj,index,self) => index === self.findIndex((t) => t.id === obj.id));
         //These checks not really neccessary but probably will help with debugging
@@ -113,7 +112,10 @@ export class QueryService {
             throw new BadRequestException('Y axis field not aggregateable which is not supported');
         }
         const joins = chartInfo.dataset.joins;
-        const requiredTables = [...new Set(fields.flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)))];
+        const requiredTables = [...new Set(fields
+            .concat(chartInfo.filters.map((axis) => axis.field))
+            .flatMap((field) => field.sourceFields.flatMap((sourceField) => sourceField.sourceTable.name)
+        ))];
 
         return QueryBuilderCustom.new(knex)
             .addDatasetFields(fields)
