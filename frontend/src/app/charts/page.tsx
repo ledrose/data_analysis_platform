@@ -32,7 +32,7 @@ export enum ChartType {
 }
 
 
-interface Field {
+export interface Field {
   id: number
   name: string
   type: string
@@ -169,7 +169,7 @@ export default function ChartPage() {
             </div>
           </Card>
           <Card className="w-2/3 p-4">
-            <PlaceholderChart chartData={chartData} />
+            <PlaceholderChart chartData={chartData} chartState={chartState} chartType={chartType} />
           </Card>
         </div>
       </div>
