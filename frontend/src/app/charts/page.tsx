@@ -67,7 +67,7 @@ export default function ChartPage() {
     useEffect(() => {
       if (chartState.xAxis.length === 0 || chartState.yAxis.length === 0) return
       executeChart({
-        onData: console.log,
+        // onData: console.log,
       })(chartId);
     },[chartState])
     const [isBasicDragged, setIsBasicDragged] = useState(false)

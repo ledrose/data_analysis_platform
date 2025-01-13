@@ -1,15 +1,20 @@
 'use client'
 
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartContainer } from '@/components/ui/chart'
 import { Field } from '@/api/charts'
+import { useMemo } from 'react'
 
-const data = [
-  { name: 'A', ind:1, value: 10 },
-  { name: 'B', ind:2, value: 20 },
-  { name: 'C', ind:3, value: 15 },
-  { name: 'D', ind:4, value: 25 },
-]
+const COLORS = [
+  "#003f5c",
+  "#2f4b7c",
+  "#665191",
+  "#a05195",
+  "#d45087",
+  "#f95d6a",
+  "#ff7c43",
+  "#ffa600"
+  ];
 
 export default function PlaceholderChart({chartData, chartState, chartType}: {chartData: any, chartState: Record<string, Field<any>[]>, chartType: string}) {
   return (chartData && chartState.xAxis.length > 0 && chartState.yAxis.length > 0 && chartType) && (
@@ -31,12 +36,22 @@ export default function PlaceholderChart({chartData, chartState, chartType}: {ch
 
 
 export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: any, xAxis: Field<any>[], yAxis: Field<any>[], chartType: string}) {
+  const data = useMemo(() =>{ 
+    for (let i = 0; i < yAxis.length; i++) {
+      chartData =chartData.map((item: any) => ({
+        ...item,
+        [yAxis[i].name]: parseFloat(item[yAxis[i].name]),
+      }))
+    }
+    return chartData
+  },[chartData]);
+  console.log(chartData)
   const maxHeight = chartData?.length > 0 ? Math.max(...yAxis.map((field) => Math.max(...chartData.map((item: any) => item[field.name])))) : 'dataMax'
   const minHeight = chartData?.length > 0 ? Math.min(...yAxis.map((field) => Math.min(...chartData.map((item: any) => item[field.name])))) : 'dataMin'
   switch (chartType) {
-    case 'line': return (LineChartComplete(({chartData, xAxis, yAxis, maxHeight, minHeight})))
-    case 'bar': return (BarChartComplete(({chartData, xAxis, yAxis, maxHeight, minHeight})))
-    case 'pie': return (PieChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight}))
+    case 'line': return (LineChartComplete(({chartData: data, xAxis, yAxis, maxHeight, minHeight})))
+    case 'bar': return (BarChartComplete(({chartData: data, xAxis, yAxis, maxHeight, minHeight})))
+    case 'pie': return (PieChartComplete({chartData: data, xAxis, yAxis, maxHeight, minHeight}))
     default: return <></>
   } 
 }
@@ -76,9 +91,9 @@ export function LineChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight
     <YAxis dataKey={yAxis[0].name} domain={[minHeight, maxHeight]} />
     <Tooltip/>
     <Legend />
-    {yAxis.map((field) => {
+    {yAxis.map((field,index) => {
         return (
-          <Line type="linear" key={field.id} dataKey={field.name} stroke="var(--color-value)" />
+          <Line type="linear" key={field.id} dataKey={field.name} stroke={COLORS[COLORS.length -1 -(index % COLORS.length)]} />
           // <Bar key={field.id} dataKey={field.name} fill="var(--color-value)" />
         )
       })}
@@ -86,19 +101,19 @@ export function LineChartComplete({chartData, xAxis, yAxis, maxHeight, minHeight
   )
 }
 
+
 export function PieChartComplete({chartData, xAxis, yAxis}: ChartProps) {
-  chartData = chartData.map((item: any) => ({name: item[xAxis[0].name], value: parseInt(item[yAxis[0].name])}))
   return (
     <PieChart>
     <Tooltip/>
     <Legend />
     {yAxis.map((field,ind) => {
         return (
-          // <Pie data={chartData} key={ind} dataKey={field.name} nameKey={xAxis[0].name}></Pie>
-
-          <Pie data={chartData} key={ind} dataKey={"value"} nameKey={"name"}></Pie>
-          // <Line type="linear" key={field.id} dataKey={field.name} stroke="var(--color-value)" />
-          // <Bar key={field.id} dataKey={field.name} fill="var(--color-value)" />
+          <Pie data={chartData} key={ind} dataKey={field.name} nameKey={xAxis[0].name} paddingAngle={1} fill='var(--color-value)'>
+            {chartData.map((entry: any, index: number) => (
+            <Cell key={`cell-${index}`} fill={COLORS[COLORS.length -1 -(index % COLORS.length)]} />
+          ))}
+          </Pie>
         )
       })}
   </PieChart>
