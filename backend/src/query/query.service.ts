@@ -95,6 +95,7 @@ export class QueryService {
         const knex = await this.connectionsService.getConnection(chartInfo.dataset.connection.id,username);
         const fields = chartInfo.axes.map((axis) => axis.field)
             .concat(chartInfo.sorts.map((axis) => axis.field))
+            //Fielter out repeats
             .filter((obj,index,self) => index === self.findIndex((t) => t.id === obj.id));
         //These checks not really neccessary but probably will help with debugging
         const xAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.X).map((axis) => axis.field);
@@ -102,7 +103,7 @@ export class QueryService {
             throw new BadRequestException('X axis not selected');
         }
         if (xAxisFields.some((axis) => axis.aggregateType != AggregateType.NONE)) {
-            throw new BadRequestException('X axis field is aggregateable which is not supported');
+            throw new BadRequestException('X axis field is aчggregateable which is not supported');
         }
         const yAxisFields = chartInfo.axes.filter((axis) => axis.type === AxisType.Y).map((axis) => axis.field);
         if (yAxisFields.length === 0) {

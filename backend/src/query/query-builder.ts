@@ -1,4 +1,3 @@
-import { build } from "@hapi/joi";
 import { InternalServerErrorException } from "@nestjs/common/exceptions/internal-server-error.exception";
 import { Knex } from "knex";
 import { ChartFilter } from "src/charts/entities/filter.entity";
@@ -36,20 +35,26 @@ export class QueryBuilderCustom {
         this.operations.push((knexBuilder: Knex.QueryBuilder) => {
             fields.forEach((field) => {
                 if (field.isSimple) {
-                    const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} as ${field.name}`;  
+                    const fieldString = `${field.sourceFields[0].sourceTable.name}.${field.sourceFields[0].name} `;  
                     if (ignoreAggregates) {
-                        knexBuilder = knexBuilder.select(fieldString);
+                        knexBuilder = knexBuilder.select({[field.name]: fieldString})
+                            // `${fieldString} as ${field.name}`);
                     } else {
-                        knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+                        knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString, field.name);
                     }
                 } else {
-                    let fieldString = `${field.formula} as ${field.name}`;
+                    let fieldString = `${field.formula}`;
                     for (let i=0; i<field.sourceFields.length;i++) {
                         fieldString = fieldString.replaceAll("${"+i+"}",`"${field.sourceFields[i].sourceTable.name}"."${field.sourceFields[i].name}"`);
                     }
-                    knexBuilder = knexBuilder.select(this.knex.raw(fieldString));
-                    // knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(fieldString);
+                    // fieldString = this.knex.raw(fieldString);
+                    if (ignoreAggregates) {
+                        knexBuilder = knexBuilder.select(this.knex.raw(`${fieldString} as ${field.name}`));
+                    } else {
+                        knexBuilder = this.addAggregateFunction(knexBuilder,field.aggregateType)(this.knex.raw(fieldString),field.name);
+                    }
                 }
+                
             })
             return knexBuilder
         });
@@ -65,7 +70,6 @@ export class QueryBuilderCustom {
             const joinedTables = [requiredTables[0]];
             let tempVariable = 0;
             let el: DatasetJoin;
-            // while (   joinedTables.length<requiredTables.length) {
             while (requiredTables.some((table) => !joinedTables.includes(table))) {
                 tempVariable = joinedTables.length
                 el = joins.find((join) => joinedTables.includes(join.leftSourceField.sourceTable.name)
@@ -190,16 +194,16 @@ export class QueryBuilderCustom {
     }
 
     private addAggregateFunction(knexBuilder: Knex.QueryBuilder,aggregateType: AggregateType) {
-        return (a: string) => {
+        return (a: string | Knex.Raw,fieldName: string) => {
             switch (aggregateType) {
                 case AggregateType.SUM:
-                    return knexBuilder.sum(a);
+                    return knexBuilder.sum({[fieldName]: a});
                 case AggregateType.COUNT:
-                    return knexBuilder.count(a);
+                    return knexBuilder.count({[fieldName]: a});
                 case AggregateType.NONE:
-                    return knexBuilder.select(a);
+                    return knexBuilder.select({[fieldName]: a});
                 case AggregateType.COUNTUNIQUE:
-                    return knexBuilder.countDistinct(a);
+                    return knexBuilder.countDistinct({[fieldName]: a});
             }
         }
     }

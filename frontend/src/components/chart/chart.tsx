@@ -47,7 +47,12 @@ export function SelectChart({chartData, xAxis, yAxis, chartType}: {chartData: an
   },[chartData]);
   console.log(chartData)
   const maxHeight = chartData?.length > 0 ? Math.max(...yAxis.map((field) => Math.max(...chartData.map((item: any) => item[field.name])))) : 'dataMax'
-  const minHeight = chartData?.length > 0 ? Math.min(...yAxis.map((field) => Math.min(...chartData.map((item: any) => item[field.name])))) : 'dataMin'
+  const tempMin = Math.min(...yAxis.map((field) => Math.min(...chartData.map((item: any) => item[field.name]))));
+  const minHeight = chartData?.length > 0 
+    ? tempMin>0 
+      ? 0 
+      : tempMin
+    : 'dataMin';
   switch (chartType) {
     case 'line': return (LineChartComplete(({chartData: data, xAxis, yAxis, maxHeight, minHeight})))
     case 'bar': return (BarChartComplete(({chartData: data, xAxis, yAxis, maxHeight, minHeight})))
